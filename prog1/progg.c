@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------------*/
 /* NAME : Sarah Larkin                                     User ID: selarkin */
-/* DUE DATE: 02/12/2020                                                      */
+/* DUE DATE: 02/07/2020                                                      */
 /* PROGRAM ASSIGNMENT 1                                                      */
 /* FILE NAME : prog1.c                                                       */
 /* PROGRAM PURPOSE:                                                          */
@@ -18,22 +18,22 @@
 #include <math.h>
 #include <time.h>
 
-double drandom(double a, double b);
+double random(double a, double b);
 void buffonsProcess(long r);
 void bernoulliProcess(long m);
 int main(int argc, char **argv)
 {
     char buf[80];
     long m, r, s;
-    int n;
+    int n;    
 
     /* Check for command-line argument correctness */
-    if (argc < 5)
+    if (argc < 5) 
     {
         sprintf(buf, "%s\n", "Program has too few arguments");
         write(1, buf, strlen(buf));
         exit(1);
-    }
+    } 
     else if (argc > 5)
     {
         sprintf(buf, "%s\n", "Program has too many arguments");
@@ -60,26 +60,25 @@ int main(int argc, char **argv)
     write(1, buf, strlen(buf));
 
     /* Then do the forking for processes */
-    sprintf(buf, "%lf\n", drandom(0, 10));
+    sprintf(buf, "%lf\n", random(0, 10));
     write(1, buf, strlen(buf));
-    sprintf(buf, "%lf\n", drandom(2, 9));
+    sprintf(buf, "%lf\n", random(2, 9));
     write(1, buf, strlen(buf));
 
 /*    buffonsProcess(r);*/
-    integrationProcess(s);
     bernoulliProcess(m);
     /* Finally print out and exit */
     sprintf(buf, "%s\n", "Main Process Exits");
     write(1, buf, strlen(buf));
-    exit(0);
-
+    exit(0);   
+    
 }
 
-long fibRecurse(int n)
+long fibRecurse(int n) 
 {
     if (n <= 2)
         return 1;
-
+    
     return fibRecurse(n - 1) + fibRecurse(n - 2);
 }
 
@@ -99,7 +98,7 @@ void fibonacciProcess(int n)
 }
 
 
-double drandom(double a, double b)
+double random(double a, double b)
 {
 /*    time_t randomSeed = time(NULL);
     float randn;
@@ -110,22 +109,15 @@ double drandom(double a, double b)
     return randNum * (b - a) + a;
 }
 
-/* ------------------------------------------------------------------------- */
-/* FUNCTION buffonsProcess:                                                  */
-/*     This function performs the Buffon's needle process to find the area
-/* PARAMETER USAGE:                                                          */
-/*    r:  the number of points to randomly pick                              */
-/* FUNCTION CALLED:                                                          */
-/*    drandom:  utility function to generate random numbers in a range       */
-/* ------------------------------------------------------------------------- */
+
 void buffonsProcess(long r)
 {
     char buf[80];
     const double PI = acos(-1.0);
     const long L = 1;
     const long G = 1;
-    double d = drandom(0, 1);
-    double a = drandom(0, 2 * PI);
+    double d = random(0, 1);
+    double a = random(0, 2 * PI);
 
     double prob = 0;
     double numCrossings = 0;
@@ -142,73 +134,59 @@ void buffonsProcess(long r)
     for (i = 0; i < r; i++)
     {
         /* Get the random numbers */
-        d = drandom(0, 1);
-        a =drandom(0, 2 * PI);
+        d = random(0, 1);
+        a = random(0, 2 * PI);
         throw = d + L * sin(a);
-
+    
         /* Did the throw land on a line? */
         if (throw < 0 || throw > G)
-            numCrossings++;
+            numCrossings++;   
     }
 
     prob = numCrossings / r;
-
+      
     sprintf(buf, "%9sEstimated Probablility is %lf\n", "", prob);
-    write(1, buf, strlen(buf));
+    write(1, buf, strlen(buf));    
 }
 
-/* ------------------------------------------------------------------------- */
-/* FUNCTION integrationProcess:                                              */
-/*     This function performs the integration process to find the area under */
-/*     the curve sin(x) as described in the assignment.                      */
-/* PARAMETER USAGE:                                                          */
-/*    s:  the number of points to randomly pick in the rectangle PI x 1      */
-/* FUNCTION CALLED:                                                          */
-/*    drandom:  utility function to generate random numbers in a range       */
-/* ------------------------------------------------------------------------- */
 void integrationProcess(long s)
 {
     char buf[80];
     const double PI = acos(-1.0);
-    double a =drandom(0, PI);
-    double b =drandom(0, 1);
+    double a = random(0, PI);
+    double b = random(0, 1);
     double point = 0;
     long i = 0;
     long t = 0;
     double result = 0;
 
-    /* Print out some messages */
+
     sprintf(buf, "%12s%s\n", "", "Integration Process Started");
     write(1, buf, strlen(buf));
     sprintf(buf, "%12s%s %ld\n", "", "Input Number", s);
     write(1, buf, strlen(buf));
+    
 
-    /* Loop s times picking a random point */
     for (i = 0; i < s; i++)
     {
-        a = drandom(0, PI);
-        b = drandom(0, 1);
-
-        /* increment if the point is under the curve */
+        a = random(0, PI);
+        b = random(0, 1);
+ 
         if (b <= sin(a))
-            t++;
+            t++;       
 
     }
 
-    result = ((double)t)/s * PI;
+    result = ((double)t)/s;   
 
-    /* Print some more messages and exit */
     sprintf(buf, "%12s%s %ld\n", "", "Total Hit", t);
     write(1, buf, strlen(buf));
     sprintf(buf, "%12s%s %lf\n", "", "Estimated Area is", result);
     write(1, buf, strlen(buf));
     sprintf(buf, "%12s%s\n", "", "Integration Process Exits");
-    write(1, buf, strlen(buf));
+    write(1, buf, strlen(buf));    
 }
-/* TODO: loop iteration - fine, do I need to explicitly use exit for the processes or
- * can they just return - either so long as no issues with main process?
- * Random always the same number - just let it be.
- */
+
 void bernoulliProcess(long m)
 {
     char buf[80];
@@ -216,37 +194,30 @@ void bernoulliProcess(long m)
     double e = 0;
     double diff = 0;
     double num = 0;
-    double nume = 0;
     const double E = exp(1.0);
 
     sprintf(buf, "%3s%s\n", "", "Approxmiation of e Process Started");
     write(1, buf, strlen(buf));
     sprintf(buf, "%3s%s %ld\n", "", "Maximum of the Exponent", m);
     write(1, buf, strlen(buf));
-
+    
     for (i = 1; i <=10; i++)
     {
-        nume = 1.0/i;
-        num = 1 + 1.0/i;
+        num = 2 + 1.0/i;
         e = pow(num, i);
         diff = e - E;
-        if (diff < 0)
-            diff = diff * -1;
-        sprintf(buf, "%3s%18lu %22.15f %22.15f\n", "", i, e, diff);
+        sprintf(buf, "%2s%18lu %18f %18f\n", " ", i, e, diff);
         write(1, buf, strlen(buf));
-    }
+    }       
 
-    sprintf(buf, "%s\n %lu\n", "After 1st loop", ULONG_MAX);
+    sprintf(buf, "%s\n", "After 1st loop");
     write(1, buf, strlen(buf));
     for (i = 16; i < m; i *= 2)
     {
-        nume = 1.0/i;
         num = 1 + 1.0/i;
         e = pow(num, i);
         diff = e - E;
-        if (diff < 0)
-            diff = diff * -1;
-        sprintf(buf, "%3s%18lu %22.15f %22.15f\n", "", i, e, diff);
+        sprintf(buf, "%3s%18lu %18f %18f\n", "", i, e, diff);
         write(1, buf, strlen(buf));
     }
 
