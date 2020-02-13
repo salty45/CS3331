@@ -28,7 +28,7 @@
 /* FUNCTION CALLED:                                                          */
 /*     none                                                                  */
 /* ------------------------------------------------------------------------- */
-long fibRecurse(int n) /* TODO: do I need to check for invalid input? */
+long fibRecurse(long n) /* TODO: do I need to check for invalid input? */
 {
     /* Base case */
     if (n <= 2)
@@ -47,23 +47,23 @@ long fibRecurse(int n) /* TODO: do I need to check for invalid input? */
 /*     fibRecurse(n): utility function recursively calculates nth fibonacci  */
 /*                    number                                                 */
 /* ------------------------------------------------------------------------- */
-void fibonacciProcess(int n)
+void fibonacciProcess(long n)
 {
     char buf[80];
     sprintf(buf, "%6s%s\n", "", "Fibonacci Process Started");
     write(1, buf, strlen(buf));
-    sprintf(buf, "%6sInput Number %d\n", "", 10);
+    sprintf(buf, "%6sInput Number %ld\n", "", 10);
     write(1, buf, strlen(buf));
 
     /* Check for invalid input */
     if (n < 1)
     {
-        sprintf(buf, "Invalid number for Fibonacci: %d\n", n);
+        sprintf(buf, "Invalid number for Fibonacci: %ld\n", n);
         write(1, buf, strlen(buf));
     }
     else {
         long fibonacci = fibRecurse(n);
-        sprintf(buf, "%6sFibonacci Number f(%d) is %ld\n", "", n, fibonacci);
+        sprintf(buf, "%6sFibonacci Number f(%ld) is %ld\n", "", n, fibonacci);
         write(1, buf, strlen(buf));
     }
     sprintf(buf, "%6s%s\n", "", "Fibonacci Process Exits");
@@ -256,26 +256,23 @@ void bernoulliProcess(long m)
 /* ------------------------------------------------------------------------- */
 /* FUNCTION forkChecker:                                                     */
 /*     This function checks whether the given value f is less than zero and  */
-/*     outputs a message including p based on the result.  Returns 0 when f  */
-/*     is negative, 1 otherwise. Used to determine if a fork was successful. */
+/*     outputs a message including p based on the result.                    */
 /* PARAMETER USAGE:                                                          */
 /*     f: an integer representing the return value of a fork                 */
 /*     p: message regarding the process the fork would run if successful     */
 /* FUNCTION CALLED:                                                          */
 /*     none                                                                  */
 /* ------------------------------------------------------------------------- */
-int forkCheck(int f, char *p)
+void forkCheck(int f, char *p)
 {
     char buf[80];
     if (f < 0)
     {
         sprintf(buf, "Fork for %s Process Failed. :(", p);
         write(1, buf, strlen(buf));
-        return 0;
     }
     sprintf(buf, "%s Process Created\n", p);
     write(1, buf, strlen(buf));
-    return 1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -291,13 +288,12 @@ int forkCheck(int f, char *p)
 /*    buffonsProcess(r):  solve the Buffon's Needle problem with r throws    */
 /*    integrationProcess(s):  find the area under the curve sin(x)           */
 /*    bernoulliProcess(m): compute the value of e                            */
-/*    forkCheck(f, m): utility prints message based on value of fork       */
+/*    forkCheck(f, m): utility prints message based on value of fork         */
 /* ------------------------------------------------------------------------- */
 int main(int argc, char **argv)
 {
     char buf[80];
-    long m, r, s;
-    int n;
+    long m, r, s, n;
     int p1, p2, p3, p4;
     int status;
 
@@ -318,7 +314,7 @@ int main(int argc, char **argv)
 
     /* Store the arguments into their appropriate variables */
     m = atol(argv[1]);
-    n = atoi(argv[2]);
+    n = atol(argv[2]);
     r = atol(argv[3]);
     s = atol(argv[4]);
 
@@ -340,49 +336,28 @@ int main(int argc, char **argv)
         /* Child process */
         fibonacciProcess(n);
     }
-    else if (p1 < 0)
-    {
-        sprintf(buf, "%s\n", "Failed to fork for Fibonacci Process");
-        write(1, buf, strlen(buf));
-    }
     else
     {
-
-        sprintf(buf, "%s\n", "Fibonacci Process Created");
-        write(1, buf, strlen(buf));
+        forkCheck(p1, "Fibonacci");
 
         if ((p2 = fork()) == 0)
         {
             /* Child process */
             buffonsProcess(r);
         }
-        else if (p2 < 0)
-        {
-            sprintf(buf, "%s\n", "Failed to fork for Buffon's Needle Process");
-            write(1, buf, strlen(buf));
-        }
         else
         {
-            sprintf(buf, "%s\n", "Buffon's Needle Process Created");
-            write(1, buf, strlen(buf));
+            forkCheck(p2, "Buffon's Needle");
 
             if ((p3 = fork()) == 0)
             {
                 /* Child process */
                 integrationProcess(s);
             }
-            else if (p2 < 0)
-            {
-                sprintf(buf, "%s\n", "Failed to fork for Integration Process");
-                write(1, buf, strlen(buf));
-            }
             else
             {
-                sprintf(buf, "%s\n", "Integration Process Created");
-                write(1, buf, strlen(buf));
+                forkCheck(p3, "Integration");
 
-                sprintf(buf, "PID: %d\n", getpid());
-                write(1, buf, strlen(buf));
                 if ((p4 = fork()) == 0)
                 {
                     /* Child process */
@@ -392,8 +367,7 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    sprintf(buf, "%s\n", "Approximation of e Process Created");
-                    write(1, buf, strlen(buf));
+                    forkCheck(p4, "Approximation of e");
 
                     /* Parent process waits */
                     sprintf(buf, "%s\n", "Main process waits");
