@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <math.h>
 #include <time.h>
-
+#include <sys/wait.h>
 /* ------------------------------------------------------------------------- */
 /* FUNCTION: fibRecurse                                                      */
 /*     Recursively calculates and returns the nth Fibonacci number.          */
@@ -54,12 +54,21 @@ void fibonacciProcess(int n)
     write(1, buf, strlen(buf));
     sprintf(buf, "%6sInput Number %d\n", "", 10);
     write(1, buf, strlen(buf));
-    long fibonacci = fibRecurse(n);
-    sprintf(buf, "%6sFibonacci Number f(%d) is %ld\n", "", n, fibonacci);
-    write(1, buf, strlen(buf));
+
+    /* Check for invalid input */
+    if (n < 1)
+    {
+        sprintf(buf, "Invalid number for Fibonacci: %d\n", n);
+        write(1, buf, strlen(buf));
+    }
+    else {
+        long fibonacci = fibRecurse(n);
+        sprintf(buf, "%6sFibonacci Number f(%d) is %ld\n", "", n, fibonacci);
+        write(1, buf, strlen(buf));
+    }
     sprintf(buf, "%6s%s\n", "", "Fibonacci Process Exits");
     write(1, buf, strlen(buf));
-    /*exit(0);*//* TODO: exit vals */
+    exit(0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -126,6 +135,7 @@ void buffonsProcess(long r)
     write(1, buf, strlen(buf));
     sprintf(buf, "%9s%s\n", "", "Buffon's Needle Process Exits");
     write(1, buf, strlen(buf));
+    exit(0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -142,7 +152,7 @@ void integrationProcess(long s)
     char buf[80];
     const double PI = acos(-1.0);
     double a = drandom(0, PI);
-    double b = drandom(0, 1);   
+    double b = drandom(0, 1);
     long i = 0;
     long t = 0;
     double result = 0;
@@ -173,6 +183,7 @@ void integrationProcess(long s)
     write(1, buf, strlen(buf));
     sprintf(buf, "%12s%s\n", "", "Integration Process Exits");
     write(1, buf, strlen(buf));
+    exit(0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -185,7 +196,7 @@ void integrationProcess(long s)
 /*     i: the value to be used in Bernoulli's equation                       */
 /* FUNCTION CALLED:                                                          */
 /*     none                                                                  */
-/* ------------------------------------------------------------------------- */ 
+/* ------------------------------------------------------------------------- */
 void bernoulli(long i)
 {
     double num, e, diff;
@@ -239,6 +250,32 @@ void bernoulliProcess(long m)
     /* Print out the exit message */
     sprintf(buf, "%3s%s\n", "", "Approximation of e Process Exits");
     write(1, buf, strlen(buf));
+    exit(0);
+}
+
+/* ------------------------------------------------------------------------- */
+/* FUNCTION forkChecker:                                                     */
+/*     This function checks whether the given value f is less than zero and  */
+/*     outputs a message including p based on the result.  Returns 0 when f  */
+/*     is negative, 1 otherwise. Used to determine if a fork was successful. */
+/* PARAMETER USAGE:                                                          */
+/*     f: an integer representing the return value of a fork                 */
+/*     p: message regarding the process the fork would run if successful     */
+/* FUNCTION CALLED:                                                          */
+/*     none                                                                  */
+/* ------------------------------------------------------------------------- */
+int forkCheck(int f, char *p)
+{
+    char buf[80];
+    if (f < 0)
+    {
+        sprintf(buf, "Fork for %s Process Failed. :(", p);
+        write(1, buf, strlen(buf));
+        return 0;
+    }
+    sprintf(buf, "%s Process Created\n", p);
+    write(1, buf, strlen(buf));
+    return 1;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -247,19 +284,23 @@ void bernoulliProcess(long m)
 /*     child processes to perform four computations concurrently.  It then   */
 /*     waits for its children to finish before terminating.                  */
 /* PARAMETER USAGE:                                                          */
-/*    argc:  the number of command-line arguments                            */
+/*    argc:  the number of command-line arguments, as an integer             */
 /*    argv:  an array of command-line arguments stored as char arrays        */
 /* FUNCTION CALLED:                                                          */
 /*    fibonacciProcess(n): recursively computes the nth fibonacci number     */
 /*    buffonsProcess(r):  solve the Buffon's Needle problem with r throws    */
 /*    integrationProcess(s):  find the area under the curve sin(x)           */
 /*    bernoulliProcess(m): compute the value of e                            */
+/*    forkCheck(f, m): utility prints message based on value of fork       */
 /* ------------------------------------------------------------------------- */
 int main(int argc, char **argv)
 {
     char buf[80];
     long m, r, s;
     int n;
+    int p1, p2, p3, p4;
+    int status;
+
 
     /* Check for command-line argument correctness */
     if (argc < 5)
@@ -268,7 +309,7 @@ int main(int argc, char **argv)
         write(1, buf, strlen(buf));
         exit(1);
     }
-    else if (argc > 6) /* TODO: change back to 5!!!! */
+    else if (argc > 5)
     {
         sprintf(buf, "%s\n", "Program has too many arguments");
         write(1, buf, strlen(buf));
@@ -294,21 +335,76 @@ int main(int argc, char **argv)
     write(1, buf, strlen(buf));
 
     /* Then do the forking for processes */
+    if ((p1 = fork()) == 0)
+    {
+        /* Child process */
+        fibonacciProcess(n);
+    }
+    else if (p1 < 0)
+    {
+        sprintf(buf, "%s\n", "Failed to fork for Fibonacci Process");
+        write(1, buf, strlen(buf));
+    }
+    else
+    {
 
-/* TODO: fork the procs */
-    switch(atoi(argv[5])) {
-        case 1:
-            fibonacciProcess(n);
-            break;
-        case 2:
+        sprintf(buf, "%s\n", "Fibonacci Process Created");
+        write(1, buf, strlen(buf));
+
+        if ((p2 = fork()) == 0)
+        {
+            /* Child process */
             buffonsProcess(r);
-            break;
-        case 3:
-            integrationProcess(s);
-            break;
-        case 4:
-            bernoulliProcess(m);
-            break;
+        }
+        else if (p2 < 0)
+        {
+            sprintf(buf, "%s\n", "Failed to fork for Buffon's Needle Process");
+            write(1, buf, strlen(buf));
+        }
+        else
+        {
+            sprintf(buf, "%s\n", "Buffon's Needle Process Created");
+            write(1, buf, strlen(buf));
+
+            if ((p3 = fork()) == 0)
+            {
+                /* Child process */
+                integrationProcess(s);
+            }
+            else if (p2 < 0)
+            {
+                sprintf(buf, "%s\n", "Failed to fork for Integration Process");
+                write(1, buf, strlen(buf));
+            }
+            else
+            {
+                sprintf(buf, "%s\n", "Integration Process Created");
+                write(1, buf, strlen(buf));
+
+                sprintf(buf, "PID: %d\n", getpid());
+                write(1, buf, strlen(buf));
+                if ((p4 = fork()) == 0)
+                {
+                    /* Child process */
+                    bernoulliProcess(m);
+                    sprintf(buf, "abcdef %s\n", "h");
+                    write(1, buf, strlen(buf));
+                }
+                else
+                {
+                    sprintf(buf, "%s\n", "Approximation of e Process Created");
+                    write(1, buf, strlen(buf));
+
+                    /* Parent process waits */
+                    sprintf(buf, "%s\n", "Main process waits");
+                    write(1, buf, strlen(buf));
+                    wait(&status);
+                    wait(&status);
+                    wait(&status);
+                    wait(&status);
+                }
+            }
+        }
     }
 
     /* Finally print out and exit */
