@@ -1,0 +1,111 @@
+/* ------------------------------------------------------------------------- */
+/* NAME : Sarah Larkin                                     User ID: selarkin */
+/* DUE DATE : 02/12/2020                                                     */
+/* PROGRAM ASSIGNMENT 1                                                      */
+/* FILE NAME : README                                                        */
+/* PURPOSE :                                                                 */
+/*     README file to accompany progoramming Assignment #1 answers the       */
+/*     questions specified in the assignment description.                    */
+/* ------------------------------------------------------------------------- */
+
+Question 1:
+            +------+
+            | main |
+            +------+
+          fork |
+            +------+
+            |proc1 |
+            +------+
+          fork |
+            +------+
+            |proc2 |
+            +------+
+          fork |
+            +------+
+            |proc3 |
+            +------+
+In all, 4 processes are created, with each being the parent of the other as
+described below.  Each of the processes is the parent of the next one because it
+exits the loop upon receiving fork's positive return value.
+The shell creates main when the program starts.
+    Main creates proc1 and exits the loop. proc1 increments i to a value of 2.
+        proc1 creates proc2 and then exits the loop.  proc2 increments i to 3.
+            proc2 creates proc3 and exits the loop.  proc3 increments i to 4.
+            proc3 then exits the loop because 4 is not less than 4.
+
+Question 2:
+                      +------+
+                      | main |
+                      +------+
+                         |
+        +-----------+-----------+-----------+
+   fork |      fork |      fork |      fork |   
+    +------+    +------+    +------+    +------+
+    |proc1 |    |proc2 |    |proc3 |    |proc4 |
+    +------+    +------+    +------+    +------+
+There are 5 processes total: main and 4 child processes.  In this situation,
+main forks one child process per loop iteration and that child process then
+breaks out of the loop because fork returns 0 to it.  By step below:
+The shell creates main when the program starts.
+    Main creates proc1 and increments(i = 1).  
+        proc1 immediately exits the loop.
+    Main creates proc2 and increments(i = 2).  
+        proc2 immediately exits the loop.
+    Main creates proc3 and increments(i = 3).  
+        proc3 immediately exits the loop.
+    Main creates proc4 and increments(i = 4).  
+        proc4 immediately breaks out of the loop.
+    Main exits the loop because the loop condition is no longer met.
+
+Question 3:
+                            +------+
+                            | main |
+                            +------+
+                 ______________|_______________
+           fork |         fork |          fork | 
+            +------+        +------+        +------+
+            |proc1 |        |proc2 |        |proc3 |
+            +------+        +------+        +------+
+         ______|____           |
+   fork |      fork |    fork  |
+     +------+   +------+    +------+
+     |proc4 |   |proc5 |    |proc6 |
+     +------+   +------+    +------+
+    fork |
+     +------+
+     |proc7 |
+     +------+
+There are a total of 8 processes created as described below.  Note: the
+processes may run concurrently once created (e.g. proc4 may be created before
+proc2 if proc1 has the CPU as soon as it is created); however, for simplicity I
+am grouping my step-by-step description by process.  When I say 'exits the loop'
+below I am meaning the process exits the loop because i is not less than 3 and
+the loop condition becomes false.
+The shell creates main when the program starts.
+    Main creates proc1 and increments(i = 1).
+    Main creates proc2 and increments(i = 2).
+    Main creates proc3 and increments(i = 3).
+    Main exits the loop because i is not less than 3.
+        proc1 increments(i = 1), creates proc4, and increments(i = 2).
+        proc1 creates proc5 and increments(i = 3). proc1 exits the loop.
+        proc2 increments(i = 2), creates proc6, and increments(i = 3).
+        proc2 exits the loop.
+        proc3 increments(i = 3) and exits the loop.
+            proc4 increments(i = 2), creates proc7, and increments(i = 3).
+            proc4 exits the loop.
+            proc5 increments(i = 3) and exits the loop.
+            proc6 increments(i = 3) and exits the loop.
+                proc7 increments(i = 3) and exits the loop.
+
+Question 4:
+The approximation of e drops to 1 from a reasonably accurate result when the
+value of i is very large because the value 1/i at this large number can no
+longer be differentiated from 0 due to floating point error.  This means the
+expression (1 + 1/i) becomes (1 + 0) or simply 1.  That means that no matter how
+much larger i becomes after this point, the value will remain at 1 because 1^n
+is always 1.  Per the IEEE 754 standard, 1 + 1/4503599627370496
+(or 1 + 1 / Ox10000000000000) is the smallest possible number to be accurately
+represented by doubles that is greater than 1.  This is because it reaches the
+limit of requiring all 52 fraction bits plus the significand.  Any number 
+smaller than this but greater than 1 cannot be differentiated from 1. 
+
