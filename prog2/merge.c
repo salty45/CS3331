@@ -61,13 +61,13 @@ int main (int argc, char **argv)
     }
 
     /* fork m + n kiddos to do the work */
-    
+     
     shmdt(x);
     return 0;
 }
 
 
-int merge(long i, long *x, long *y, long *r, long ix, long iy, long ir) 
+void merge(long i, long *x, long *y, long *r, long ix, long iy, long ir) 
 {
     long j, k;
     if (x[i] < y[0])
@@ -76,16 +76,30 @@ int merge(long i, long *x, long *y, long *r, long ix, long iy, long ir)
         r[i] = x[i+iy];
     else
         r[binSearch(i, x, ix, y, iy)] = x[i];
-    return;
+    exit(0);
 }
 
 long binSearch(long i, long *x, long ix, long *y, long iy)
 {
     long k = 0;
-    for (k = 0; k < iy; k++)
+    long j = iy - 1;
+    long m = (j - k) / 2 + 1;
+    while (k < j)
     {
-        
+        if (x[i] < y[m])
+        {
+            /* Guessed an index that was too large */
+            j = m - 1;
+            m = (j - k) / 2 + 1; 
+        }
+        else 
+        {
+            /* Guessed an index that was too small */
+            k = m + 1;
+            m = m + (j - k) / 2 + 1;
+        }
     }
+    return k + i;
 }
 
 

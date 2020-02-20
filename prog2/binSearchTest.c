@@ -45,10 +45,10 @@ long binSearch(long i, long *x, long ix, long *y, long iy)
         }
 /*        m = (j - k)/2;*/
         printf("k: %d  j: %d  m: %d\n", k, j, m);
-        if (diff(k, j) < 1)
+ /*       if (diff(k, j) < 1)
             break;
         if (n++ > 12)
-            break;
+            break;*/
     }
     printf("k = %ld  i = %ld\n", k, i);
     return k + i;
