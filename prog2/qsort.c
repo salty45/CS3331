@@ -32,118 +32,120 @@ int lomuto(long *arr, long l, long r)
     swap(arr, l, si);
     return si;
 }
-
-
-int partition(long *arr, long l, long r)
+void setArgs(char **args, long left, long right, int k, long size)
 {
-    return lomuto(arr, l, r);
-    long p = arr[l];
-    long i = l;
-    long j = r + 1;
+    sprintf(args[0], "%s", "./qsort");
+    sprintf(args[1], "%ld", left);
+    sprintf(args[2], "%ld", pivot - 1);
+    sprintf(args[3], "%d", k);
+    sprintf(args[4], "%ld", size);
+    sprintf(args[5], "%c", '\0');
+}
+
+/* 
+ * Communication protocol:
+ * argv[1] = left
+ * argv[2] = right
+ * argv[3] = memKey
+ * argv[4] = size of memory in bytes
+ */
+int main(int argc, char **argv)
+{
+    char buf[80];
+    int numArgs = 5;
+    long pivot = 0;
+    char argsk1[numArgs + 1][80];
+    char argsk2[numArgs + 1][80];
+    long left, right;
+    int k;     
     
-    do 
-    {
-        printf("%s\n", "top of do loop");
-        do
-        {
-            i++;
-            printf("%s\n", "in i");
-        } while (arr[i] < p);
-        printf("%s\n", "after i loop");
-        do 
-        {
-            printf("%s\n", "in j");
-            j--;
-        } while (arr[j] > p);
-        swap(arr, i, j);      
-        printf("after swap%s\n", ""); 
-    } while (i < j);
-    /*while (i <= j)
-    {
-        while (arr[i] <= p)
-            i++;
-        while (arr[j] >= p)
-            j--;   
-        swap(arr, i, j);
-    }*/
-    swap(arr, i, j);
-    swap(arr, l, j);
-    return j;
-}
+    int pid; 
+    key_t key;
+    int memID;
+    long *arr;
+    long size;
 
-
-void qsortr(long *arr, long n, long l, long r)
-{
-    long pivot = partition(arr, l, r);
-    /*printf("Pivot: %ld\n", pivot);*/
-    if (l < r)
+    /* Verify args have come in correctly */
+    if (argc < numArgs || argc > numArgs)
     {
-        qsortr(arr, n, l, pivot - 1);
-        qsortr(arr, n, pivot + 1, r);
+        sprintf(buf, "%s\n", "Improper num args");
+        write(1, buf, strlen(buf));
+        exit(1);
     }
-}
 
-/* Second array expected values, 1st actual vals */
-void testEquals(long *arr1, long *arr2, long len)
-{
-    long i = 0;
-    long errs = 0;
-    for (i = 0; i < len; i++)
+    /* Read in the command-line args */
+    left = atol(argv[1]);
+    right = atol(argv[2]);
+    k = atoi(argv[3]);
+    size = atol(argv[4]);    
+
+    /* Attach to shared mem */
+    key = ftok("./", k);
+    if (key == -1)
+        exit(1);
+
+    memID = shmget(key, sizeof(long) * size, 0666);
+    if (memID == -1)
+        exit(1);
+
+    arr = (long *) shmat(memID, NULL, 0);
+    if ((int) arr < 0)
+        exit(1);
+
+    
+    /* Partition the array */
+    pivot = lomuto(arr, left, right);
+    
+    /* Set up the args for the child processes */
+    setArgs(argsk1, left, pivot - 1, k, size);
+    setArgs(argsk2, pivot + 1, right, k, size);
+
+    /* Fork to create the children, then exec to run them */
+    if ((pid = fork()) < 0)
     {
-        if (arr1[i] != arr2[i])
+
+    } 
+    else if (pid == 0)
+    {
+        if (execvp(argsk1[0], argsk1) < 0)
         {
-            printf("Failure of sort at index %d: exp: %d but was %d\n", i,
-                arr2[i], arr1[i]);
-            errs++;
-            printArr(arr1, len);
-            break;
+            /* TODO: error handling */
         }
     }
-    if (errs == 0)
-        printf("%s\n", "Perfect sort!");
-}
-
-void printArr(long *arr, long len)
-{
-    long i = 0;
-    printf("%s\n{ ", "Printing array:");
-    for (i = 0; i < len; i++)
+    else
     {
-        printf("%ld, ", arr[i]);
+        if ((pid = fork()) < 0)
+        {
+
+        } 
+        else if (pid == 0)
+        {
+            if (execvp(argsk2[0], argsk2) < 0)
+            {
+                /*TODO: error handling */
+            }
+        }   
+        else
+        {
+            wait(&pid);
+            wait(&pid); 
+        }
+        
     }
-    printf(" %s\n\n", "}");
-}
-
-int main(int argc, char **argv) 
-{
-    long one[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    long two[10] = { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
-    long three[10] = { 1, 10, 2, 9, 3, 8, 4, 5, 7, 6 };
-    long four[11] = { 1, 11, 7, 8, 9, 10, 2, 4, 3, 6, 5};
-
-    long oner[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    long fourr[11] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };   
-
-    printf("%s\n", "Starting qsort");
-    printArr(one, 10);
-    qsortr(one, 10, 0, 9);
-    testEquals(one, oner, 10);
-
-    printArr(two, 10);
-    qsortr(two, 10, 0, 9);
-    testEquals(two, oner, 10);
     
-    printArr(three, 10);
-    qsortr(three, 10, 0, 9);
-    testEquals(three, oner, 10);
+   
 
-    printArr(four, 11);
-    qsortr(four, 11, 0, 10);
-    testEquals(four, fourr, 11);
 
-    printf("%s\n", "Done");
     
+    /* Finally, detach from shared memory */
+    pivot = shmdt((void *) arr);
+    if (pivot == -1)
+    {
+        sprintf(buf, "%s\n", "FAILED TO DETACH FROM SHARED MEMORY!!!");
+        write(2, buf, strlen(buf));
+        exit(1);
+    }
+       
     
-
     return 0;
 }
