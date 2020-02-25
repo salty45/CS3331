@@ -1,3 +1,15 @@
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                      User ID: selarkin */
+/* DUE DATE: 02/24/2020                                                      */
+/* PROGRAM ASSIGNMENT 2                                                      */
+/* FILE NAME: main.c                                                         */
+/* PROGRAM PURPOSE:                                                          */
+/*    This program forks a child process that executes qsort.c to sort an    */
+/*    array using quicksort.  Concurrently, it performs a binary merge on    */
+/*    another two arrays by forking a child to execute merge.c.  The arrays  */
+/*    are transferred between processes by using shared memory.              */
+/* ------------------------------------------------------------------------- */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +20,16 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+/* --------------------------------------------------------------------------*/
+/* FUNCTION swap:                                                            */
+/*    Swaps the elements at indices a and b in array arr                     */
+/* PARAMETER USAGE:                                                          */
+/*    arr: the array in which to perform the swap                            */
+/*    a: the index of the first number to swap                               */
+/*    b: the index of the second number to swap                              */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void swap(long *arr, long a, long b)
 {
     long x = arr[a];
@@ -15,7 +37,16 @@ void swap(long *arr, long a, long b)
     arr[b] = x;
 }
 
-
+/* ------------------------------------------------------------------------- */
+/* FUNCTION lomuto                                                           */
+/*    Perform the lomuto partition on the given array with the given start   */
+/* PARAMETER USAGE:                                                          */
+/*    arr: array to partion                                                  */
+/*    l: the left most index                                                 */
+/*    r: the right most index                                                */
+/* FUNCTION CALLED:                                                          */
+/*    swap: utility to swap values at indices                                */
+/* ------------------------------------------------------------------------- */
 int lomuto(long *arr, long l, long r)
 {
     long p = arr[l];
@@ -32,7 +63,15 @@ int lomuto(long *arr, long l, long r)
     swap(arr, l, si);
     return si;
 }
-void setArgs(char **args, long left, long right, int k, long size)
+
+/* ------------------------------------------------------------------------- */
+/* FUNCTION setArgs                                                          */
+/*    Utility sets the argument array before forking and executing           */
+/* PARAMETER USAGE:                                                          */
+/*    args: the argument array                                               */
+/*    left: the left most index                                              */
+/*    right: the */
+/*void setArgs(char **args, long left, long right, int k, long size)
 {
     sprintf(args[0], "%s", "./qsort");
     sprintf(args[1], "%ld", left);
@@ -40,6 +79,32 @@ void setArgs(char **args, long left, long right, int k, long size)
     sprintf(args[3], "%d", k);
     sprintf(args[4], "%ld", size);
     sprintf(args[5], "%c", '\0');
+}*/
+
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: setArgsQsort                                                    */
+/*    Utility function fills the argument array to use when executing qsort  */
+/* PARAMETER USAGE:                                                          */
+/*    qargs: pointer to the argument array                                   */
+/*    l: the index of the left end of the array                              */
+/*    r: the index of the rightmost element in the array                     */
+/*    id: the id of the shared memory segment                                */
+/*    len: the total length of the shared memory segment                     */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
+void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
+{
+    int i = 0;
+    for (i = 0; i < 5; i++)
+        qargs[i] = malloc(sizeof(char) * 80);
+
+    sprintf(qargs[0], "%s", "./qsort");
+    sprintf(qargs[1], "%ld", l);
+    sprintf(qargs[2], "%ld", r);
+    sprintf(qargs[3], "%d", id);
+    sprintf(qargs[4], "%ld", len);
+    qargs[5] = '\0';
 }
 
 /* 
@@ -85,17 +150,17 @@ int main(int argc, char **argv)
     write(2, buf, strlen(buf));
 
      /* Get the key and print it out */
-    key = ftok("./", 'j');
+/*    key = ftok("./", 'j');
     sprintf(buf, "%sshared memory key = %d\n", msg, key);
-    write(1, buf, strlen(buf));
+    write(1, buf, strlen(buf));*/
  /*   errHandleShm(*data, -1, key);*/
 
     /* Create the shared memory */
-    k = shmget(key, sizeof(long) * size, 0666);
-    left = errno;
+/*    k = shmget(key, sizeof(long) * size, 0666);
+    left = errno;*/
     
    /* errHandleShm(*data, shmID, shmID);*/
-    sprintf(buf, "%sshared memory created: %d\n", msg, k);
+   /* sprintf(buf, "%sshared memory created: %d\n", msg, k);
     write(1, buf, strlen(buf));
    
     if (k == -1)
@@ -108,7 +173,7 @@ int main(int argc, char **argv)
             sprintf(buf, "%s\n", "memissue");
             write(2, buf, strlen(buf));
         }
-    }
+    }*/
          
     /* Attach to the shared memory */
     arr = (long *) shmat(k, NULL, 0);
@@ -117,7 +182,7 @@ int main(int argc, char **argv)
         sprintf(buf, "%s\n", "mem fail qsort");
         write(1, buf, strlen(buf));
     }
-    return 0;
+    return 1;
     /* Attach to shared mem */
     /*key = ftok("./", k);
     if (key == -1)

@@ -1,3 +1,14 @@
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                      User ID: selarkin */
+/* DUE DATE: 02/24/2020                                                      */
+/* PROGRAM ASSIGNMENT 2                                                      */
+/* FILE NAME: main.c                                                         */
+/* PROGRAM PURPOSE:                                                          */
+/*    This program forks a child process that executes qsort.c to sort an    */
+/*    array using quicksort.  Concurrently, it performs a binary merge on    */
+/*    another two arrays by forking a child to execute merge.c.  The arrays  */
+/*    are transferred between processes by using shared memory.              */
+/* ------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +17,9 @@
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <errno.h>
 
+/* A struct to store a bunch of info on shared memory locations */
 struct dataInfo 
 {
     long k;
@@ -20,6 +33,15 @@ struct dataInfo
     long totLen;
 };
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION initArray:                                                       */
+/*     This function initializes an array of long integers into the given    */
+/*     pointer by reading the size followed by the array elements from stdin */
+/* PARAMETER USAGE:                                                          */
+/*     arr: a pointer to an array of type long * to be filled                */
+/* FUNCTION CALLED:                                                          */
+/*     none                                                                  */
+/* ------------------------------------------------------------------------- */
 long initArray(long **arr)
 {
     long a = 0, i = 0;
@@ -30,6 +52,21 @@ long initArray(long **arr)
     return a;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION readData:                                                        */
+/*    Reads the input file and initializes three temporary arrays on the     */
+/*    heap to hold the data until the shared memory is created               */
+/* PARAMETER USAGE:                                                          */
+/*    k: a pointer to store the length of the first array                    */
+/*    m: a pointer to store the length of the second array                   */
+/*    n: a pointer to store the length of the third array                    */
+/*    a: a pointer to the first array                                        */
+/*    x: a pointer to the second array                                       */
+/*    y: a pointer to the third array                                        */
+/* FUNCTION CALLED:                                                          */
+/*    initArray: a utility function to read data from stdin and store to the */
+/*               given array                                                 */
+/* ------------------------------------------------------------------------- */
 void readData(long *k, long *m, long *n, long **a, long **x, long **y)
 {
     *k = initArray(a);
@@ -37,6 +74,18 @@ void readData(long *k, long *m, long *n, long **a, long **x, long **y)
     *n = initArray(y);
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION setDataInfo:                                                     */
+/*    Calculates and stores information about the location of each array in  */
+/*    the shared memory segment.                                             */
+/* PARAMETER USAGE:                                                          */
+/*    k: the length of the first array                                       */
+/*    m: the length of the second array                                      */
+/*    n: the length of the third array                                       */
+/*    datai: the struct to store the calculated information                  */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void setDataInfo(long k, long m, long n, struct dataInfo *datai)
 {
     datai -> k = k;
@@ -50,6 +99,17 @@ void setDataInfo(long k, long m, long n, struct dataInfo *datai)
     datai -> totLen = k + m + n + datai -> datLen;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION errHandleShm:                                                    */
+/*    Utility function to check for and gracefully handle shared memory      */
+/*    errors.                                                                */
+/* PARAMATER USAGE:                                                          */
+/*    data: the pointer to shared memory                                     */
+/*    shmID: the id of the shared memory                                     */
+/*    eval: the value to check for equality with -1 (error state)            */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void errHandleShm(long *data, int shmID, int eval)
 {
     char buf[80];
@@ -65,7 +125,16 @@ void errHandleShm(long *data, int shmID, int eval)
     exit(1);
 }
 
-/* Creates shared memory and returns its id */
+/* ------------------------------------------------------------------------- */
+/* FUNCTION createShm:                                                       */
+/*     Creates a shared memory segment and returns its id                    */
+/* PARAMETER USAGE:                                                          */
+/*     data: the pointer to the shared memory                                */
+/*     datai: a struct holding info about the subarrays stored in shared     */
+/*            memory                                                         */
+/* FUNCTION CALLED:                                                          */
+/*     errHandleShm: error checking utility                                  */
+/* ------------------------------------------------------------------------- */
 int createShm(long **data, struct dataInfo *datai)
 {
     int shmID = 0;
@@ -91,9 +160,22 @@ int createShm(long **data, struct dataInfo *datai)
     sprintf(buf, "%sshared memory attached and is ready to use\n", msg);
     write(1, buf, strlen(buf));
    
-     return shmID;
+    return shmID;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION copyData:                                                        */
+/*     Copies data from temporary arrays into the given shared memory segment*/
+/* PARAMETER USAGE:                                                          */
+/*     a: the first temporary array                                          */
+/*     x: the second temporary array                                         */
+/*     y: the third temporary array                                          */
+/*     datai: a struct containing information about the arrays and shared    */
+/*            memory segment                                                 */
+/*     data: a pointer to the shared memory segment                          */
+/* FUNCTION CALLED:                                                          */
+/*     none                                                                  */
+/*-------------------------------------------------------------------------- */
 void copyData(long *a, long *x, long *y, struct dataInfo *datai, long **data)
 {
     long i = 0;
@@ -107,6 +189,16 @@ void copyData(long *a, long *x, long *y, struct dataInfo *datai, long **data)
         (*data)[i + datai -> sdat] = 0;
 }
  
+/* ------------------------------------------------------------------------- */
+/* FUNCTION freeArrays:                                                      */
+/*     Frees the three given arrays that held input temporarily              */
+/* PARAMETER USAGE:                                                          */
+/*     a: the first temporary array                                          */
+/*     x: the second temporary array                                         */
+/*     y: the third temporary array                                          */
+/* FUNCTION CALLED:                                                          */
+/*     none                                                                  */
+/*-------------------------------------------------------------------------- */
 void freeArrays(long *a, long *x, long *y)
 {
     free(a);
@@ -114,7 +206,22 @@ void freeArrays(long *a, long *x, long *y)
     free(y);
 }
 
-/* Returns the shared memory id */
+/* ------------------------------------------------------------------------- */
+/* FUNCTION loadData:                                                        */
+/*    Loads the contents of the three arrays from stdin and stores them into */
+/*    temporary arrays before creating the shared memory segment and copying */
+/*    the data over. Returns the shared memory id                            */
+/* PARAMETER USAGE:                                                          */
+/*    data: the pointer to the shared memory segment                         */
+/*    datai: a struct storing information about the layout of the shared     */
+/*           memory segment                                                  */
+/* FUNCTION CALLED:                                                          */
+/*    readData: read the data into temporary arrays on the heap              */
+/*    setDataInfo: store information about how to organize the shared memory */
+/*    createShm: create the shared memory segment                            */
+/*    copyData: copy the stored arrays into shared memory                    */
+/*    freeArray: free the temporary arrays                                   */
+/* ------------------------------------------------------------------------- */
 int loadData(long **data, struct dataInfo *datai)
 {
     long k = 0, m = 0, n = 0;
@@ -129,6 +236,16 @@ int loadData(long **data, struct dataInfo *datai)
     return shmID; 
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION detachRemMem:                                                    */
+/*    Detaches from and then removes the given shared memory segement.       */
+/*    Returns the result of the detach operation.                            */
+/* PARAMETER USAGE:                                                          */
+/*    data: the pointer to the shared memory segment                         */
+/*    shmID: the id for the shared memory segment                            */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 int detachRemMem(long *data, int shmID)
 {
     int res = shmdt((void *) data);
@@ -136,6 +253,10 @@ int detachRemMem(long *data, int shmID)
     return res;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: printArray                                                      */
+/*    Utility function prints out the given array from start to len.         */
+/* PARAMETER USAGE:         */
 void printArray(long *arr, long start, long len, char *msg, char *val)
 {
     long i = 0;
@@ -153,23 +274,20 @@ void printArray(long *arr, long start, long len, char *msg, char *val)
     write(1, buf, strlen(buf));
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: setArgsQsort                                                    */
+/*    Utility function fills the argument array to use when executing qsort  */
+/* PARAMETER USAGE:                                                          */
+/*    qargs: pointer to the argument array                                   */
+/*    l: the index of the left end of the array                              */
+/*    r: the index of the rightmost element in the array                     */
+/*    id: the id of the shared memory segment                                */
+/*    len: the total length of the shared memory segment                     */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
 {
-    /*char zero[] = {"./qsort"};
-    char one [80];
-    char two[80];
-    char three[80];
-    char four[80];
-    sprintf(one, "%ld", l);
-    sprintf(two, "%ld", r);
-    sprintf(three, "%d", id);
-    sprintf(four, "%ld", len);
-    args[0] = zero;
-    args[1] = one;
-    args[2] = two;
-    args[3] = three;
-    args[4] = four;*/
-
     int i = 0;
     for (i = 0; i < 5; i++)
         qargs[i] = malloc(sizeof(char) * 80);
@@ -182,6 +300,16 @@ void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
     qargs[5] = '\0';
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION setArgsMsort:                                                    */
+/*    Utility function fills the argument array to use when executing merge  */
+/* PARAMETER USAGE:                                                          */
+/*    margs: pointer to the argument array                                   */
+/*    datai: info on the arrays start and end points                         */
+/*    shmID: shared memory id                                                */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void setArgsMsort(char *margs[10], struct dataInfo *datai, int shmID)
 {
     int i = 0;
@@ -202,6 +330,22 @@ void setArgsMsort(char *margs[10], struct dataInfo *datai, int shmID)
     margs[9] = '\0';    
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION main:                                                            */
+/*    Main reads in the input, creates the shared memory, forks two children */
+/*    to execute the programs qsort and merge. It then waits for its child   */
+/*    processes to complete before printing the results and cleaning up      */
+/*    shared memory                                                          */
+/* PARAMETER USAGE:                                                          */
+/*    argc: the number of command line arguments                             */
+/*    argv: array of command-line arguments                                  */
+/* FUNCTION CALLED:                                                          */
+/*    loadData: loads data into shared memory from stdin                     */
+/*    printArray: prints out the given array                                 */
+/*    setArgsQsort: utility creates the arguments to execute qsort           */
+/*    setArgsMsort: uitlity creates the arguments to execute binary merge    */
+/*    detachRemMem: detach from and remove shared memory                     */
+/* ------------------------------------------------------------------------- */
 int main(int argc, char **argv)
 {
     char buf[80];
@@ -216,7 +360,7 @@ int main(int argc, char **argv)
     char *qargs[5];
     char *margs[9];
     int status1, status2;
-
+    int wait1, wait2;
 
 
     /* Print out some info */
@@ -237,25 +381,11 @@ int main(int argc, char **argv)
     /* Set up the args for qsort and merge */
     setArgsQsort(qargs, 0, datai -> k - 1, shmID, datai -> totLen);
     setArgsMsort(margs, datai, shmID);
- /*   sprintf(qargs[0], "%s", "./qsort");
-    sprintf(qargs[1], "%ld", 0);
-    sprintf(qargs[2], "%ld", datai -> k - 1);
-    sprintf(qargs[3], "%d", shmID);
-    sprintf(qargs[4], "%ld", datai -> totLen);
-    sprintf(qargs[5], "%c", '\0');*/
-
-    /*sprintf(margs[0], "%s", "./merge");
-    sprintf(margs[1], "%ld", datai -> sm);
-    sprintf(margs[2], "%ld", datai -> m);
-    sprintf(margs[3], "%ld", datai -> sn);
-    sprintf(margs[4], "%ld", datai -> n);
-    sprintf(margs[5], "%ld", datai -> sdat);
-    sprintf(margs[6], "%ld", datai -> datLen);
-    sprintf(margs[7], "%d", shmID);
-    sprintf(margs[8], "%c", '\0');*/
-    
+   
     sprintf(buf, format, "about to spawn the process for qsort");
     write(1, buf, strlen(buf));
+
+    /* Perform the forks */
     if ((pid1 = fork()) == 0)
     {
         execvp(qargs[0], qargs);
@@ -265,14 +395,22 @@ int main(int argc, char **argv)
         sprintf(buf, "%s\n", "failed to exit");
         write(2, buf, strlen(buf));
     }
-    else if (pid1 > 0)
+    else 
     {
+        if (pid1 < 0)
+        {
+            sprintf(buf, "Forking error: %s\n", strerror(errno));
+            write(2, buf, strlen(buf));
+        }
+    
         sprintf(buf, format, "about to spawn the process for merge");
         write(1, buf, strlen(buf));
-        if ((pid2 == fork()) == 0)
+    
+        if ((pid2 = fork()) == 0)
         {
             execvp(margs[0], margs);
-            sprintf(buf, "%s\n", "merge: failed to exec properly");
+            sprintf(buf, "%s%s\n", "merge: failed to exec properly ", 
+                strerror(errno));
             write(2, buf, strlen(buf));
             
             return 4;
@@ -290,22 +428,38 @@ int main(int argc, char **argv)
             }
             sprintf(buf, "%s\n", "Main about to wait");
             write(2, buf, strlen(buf));
-            /* sleep(20);*/
-            wait(&status1);
-            wait(&status2);
-            sprintf(buf, format, "sorted array by qsort:");
-            write(1, buf, strlen(buf));
-            sprintf(buf, format, "merged array:");
-            write(1, buf, strlen(buf));
         } 
     }
-    else 
-    {
-        sprintf(buf, "%s\n", "Qsort fork error");
-        write(1, buf, strlen(buf));
-    }
+    
     sprintf(buf, "%s\n", "out of forks");
     write(2, buf, strlen(buf));
+    /* Uncomment the sleep below to get program to stop before wait, since it
+     * currently doesn't stop to wait. WHY? */
+    /* sleep(30);*/
+
+    sprintf(buf, "wait 1: %d\n", (wait1 = wait(&status1)));
+    write(1, buf, strlen(buf));
+    sprintf(buf, "wait 2: %d\n", (wait2 = wait(&status2)));
+    write(1, buf, strlen(buf));
+    sprintf(buf, "err1: %s\n", strerror(wait1));
+    write(1, buf, strlen(buf));
+    sprintf(buf, "err2: %s\n", strerror(wait2));
+    write(1, buf, strlen(buf));
+    if (wait1 == ECHILD)
+    {
+        
+    }
+    if (WIFEXITED(status1)== 0)
+    {
+        sprintf(buf, "no exit %s\n", "");
+        write(1, buf, strlen(buf));
+    }
+    sprintf(buf, format, "sorted array by qsort:");
+    write(1, buf, strlen(buf));
+    sprintf(buf, format, "merged array:");
+    write(1, buf, strlen(buf));
+
+    /* Free the argument arrays */
     for (i = 0; i < 5; i++)
         free(qargs[i]);
     for (i = 0; i < 9; i++)

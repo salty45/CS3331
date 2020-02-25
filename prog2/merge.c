@@ -1,4 +1,35 @@
 /* ------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                      User ID: selarkin */
+/* DUE DATE: 02/24/2020                                                      */
+/* PROGRAM ASSIGNMENT 2                                                      */
+/* FILE NAME: main.c                                                         */
+/* PROGRAM PURPOSE:                                                          */
+/*    This program forks a child process that executes qsort.c to sort an    */
+/*    array using quicksort.  Concurrently, it performs a binary merge on    */
+/*    another two arrays by forking a child to execute merge.c.  The arrays  */
+/*    are transferred between processes by using shared memory.              */
+/* ------------------------------------------------------------------------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,7 +39,7 @@
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#include <errno.h>
 struct DataInfo
 {
     long k;
@@ -92,6 +123,9 @@ int main (int argc, char **argv)
     long kiddos;
     long i = 0;
     int pid;
+
+    sprintf(buf, format, "", getpid());
+    write(1, buf, strlen(buf));
     /* Confirm the args are all here! */
     if (argc < numArgs || argc > numArgs)
     {
@@ -103,13 +137,19 @@ int main (int argc, char **argv)
         exit(1);
     }
 
-    
+    shmID = atoi(argv[7]);
+    sprintf(buf, "%6s$$$M : %d\n", "", shmID);
+    write(1, buf, strlen(buf));
 
     /* get and attach to shared memory with checks */   
     data = (long *) shmat(shmID, NULL, 0);
     /* no need to error check: if I fail to attach, I can't possibly detach */
-
-    
+    if ((int) data == -1)
+        pid = -1;          
+    sprintf(buf, "%6s$$$$ M-PROC(%4d): attached %d  %s\n", "", getpid(), 
+            pid, strerror(errno));
+    write(1, buf, strlen(buf)); 
+    return 2;
     /* fork m + n kiddos to do the work */
     for (i = 0; i < lenx; i++)
     {
@@ -133,6 +173,9 @@ int main (int argc, char **argv)
     return 0;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: binSearch                                                       */
+/*    Performs a binary search to find and */ 
 long binSearch(long i, long *x, long ix, long *y, long iy)
 {
     long k = 0;
