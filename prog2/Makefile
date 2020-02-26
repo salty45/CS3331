@@ -10,7 +10,7 @@ grade:
 	gcc qsort.c -o qsort
 	gcc merge.c -o merge
 
-qsort:
+qsort: qsort.c
 	${G} qsort.c -o qsort
 
 merge: merge.c

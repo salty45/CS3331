@@ -119,8 +119,8 @@ int main(int argc, char **argv)
     char buf[80];
     int numArgs = 5;
     long pivot = 0;
-    char argsk1[numArgs + 1][80];
-    char argsk2[numArgs + 1][80];
+    char *argsk1[numArgs + 1];
+    char *argsk2[numArgs + 1];
     long left, right;
     int k;     
     
@@ -129,8 +129,11 @@ int main(int argc, char **argv)
     int memID;
     long *arr;
     long size;
-    char *msg = "QSORT!";
-
+    char *msg = "%3s Q-PROC(%d): entering with a[%ld..%ld]\n";
+    char *printArr;
+    char *arrBuf;
+    int numLen = 0;
+    int i = 0;
     sprintf(buf, "%s\n", "Hello QSORT");
     write(2, buf, strlen(buf));
     /* Verify args have come in correctly */
@@ -146,74 +149,31 @@ int main(int argc, char **argv)
     right = atol(argv[2]);
     k = atoi(argv[3]);
     size = atol(argv[4]);    
-    sprintf(buf, "Mem id: %d\n", k);
-    write(2, buf, strlen(buf));
-
-     /* Get the key and print it out */
-/*    key = ftok("./", 'j');
-    sprintf(buf, "%sshared memory key = %d\n", msg, key);
-    write(1, buf, strlen(buf));*/
- /*   errHandleShm(*data, -1, key);*/
-
-    /* Create the shared memory */
-/*    k = shmget(key, sizeof(long) * size, 0666);
-    left = errno;*/
-    
-   /* errHandleShm(*data, shmID, shmID);*/
-   /* sprintf(buf, "%sshared memory created: %d\n", msg, k);
+    sprintf(buf, msg, "", getpid(), left, right);
     write(1, buf, strlen(buf));
-   
-    if (k == -1)
-    {
-        sprintf(buf, "%s %s\n", "k = -1", strerror(left));
-        write(2, buf, strlen(buf));
-        perror(left);
-        if (left == EEXIST)
-        {
-            sprintf(buf, "%s\n", "memissue");
-            write(2, buf, strlen(buf));
-        }
-    }*/
-         
+ 
+        
     /* Attach to the shared memory */
     arr = (long *) shmat(k, NULL, 0);
-    if ((int) arr == 0)
-    {
-        sprintf(buf, "%s\n", "mem fail qsort");
-        write(1, buf, strlen(buf));
-    }
-    return 1;
-    /* Attach to shared mem */
-    /*key = ftok("./", k);
-    if (key == -1)
-        exit(1);
-
-    memID = shmget(key, sizeof(long) * size, 0666);
-    if (memID == -1)
-        exit(1);
-
-    arr = (long *) shmat(memID, NULL, 0);*/
-    arr = (long *) shmat(k, NULL, 0);
-    if ((int) arr < 0)
+    if (arr == (void *) -1)
     {
         sprintf(buf, "%s\n", "failed to attach to mem");
         write(2, buf, strlen(buf));
+        shmdt((void *) arr);
         exit(1);
     }
 
-    sprintf(buf, "%s\n", "MEM good");
-    write(2, buf, strlen(buf)); 
+    /* Print the array */
+    numLen = 0;
     
+ 
     /* Partition the array */
     pivot = lomuto(arr, left, right);
     
-    sprintf(buf, "%3s Q-PROC(%d): entering with a[%ld..%ld]\n", "", getpid(),
-            left, right);
-    write(1, buf, strlen(buf));
-    
+    return 0; 
     /* Set up the args for the child processes */
-    setArgs(argsk1, left, pivot - 1, k, size);
-    setArgs(argsk2, pivot + 1, right, k, size);
+    setArgsQsort(argsk1, left, pivot - 1, k, size);
+    setArgsQsort(argsk2, pivot + 1, right, k, size);
 
     /* Fork to create the children, then exec to run them */
     if ((pid = fork()) < 0)
