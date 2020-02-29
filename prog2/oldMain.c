@@ -372,9 +372,9 @@ int main(int argc, char **argv)
     shmID = loadData(&data, datai);
 
     /* Print the input arrays */
-    msg = "Input array for %s has %ld elements:\n";
+    msg = "Input array for %s has %ld elements";
     printArray(data, datai -> sk, datai -> k, msg, "qsort");
-    msg = "Input array %s[] for merge has %ld elements:\n";
+    msg = "Input array %s[] for merge has %ld elements";
     printArray(data, datai -> sm, datai -> m, msg, "x");
     printArray(data, datai -> sn, datai -> n, msg, "y");
 
@@ -395,32 +395,42 @@ int main(int argc, char **argv)
         sprintf(buf, "%s\n", "failed to exit");
         write(2, buf, strlen(buf));
     }
-    if (pid1 < 0)
+    else 
     {
-        sprintf(buf, "Forking error: %s\n", strerror(errno));
-        write(2, buf, strlen(buf));
+        if (pid1 < 0)
+        {
+            sprintf(buf, "Forking error: %s\n", strerror(errno));
+            write(2, buf, strlen(buf));
+        }
+    
+        sprintf(buf, format, "about to spawn the process for merge");
+        write(1, buf, strlen(buf));
+    
+        if ((pid2 = fork()) == 0)
+        {
+            execvp(margs[0], margs);
+            sprintf(buf, "%s%s\n", "merge: failed to exec properly ", 
+                strerror(errno));
+            write(2, buf, strlen(buf));
+            
+            return 4;
+            sprintf(buf, "%s\n", "failed to exit");
+            write(2, buf, strlen(buf));
+        }  
+        else 
+        {
+
+            if (pid2 < 0)
+            {
+
+                sprintf(buf, "Merge: Error in forking%s\n", "");
+                write(2, buf, strlen(buf));
+            }
+            sprintf(buf, "%s\n", "Main about to wait");
+            write(2, buf, strlen(buf));
+        } 
     }
     
-    sprintf(buf, format, "about to spawn the process for merge");
-    write(1, buf, strlen(buf));
-    if ((pid2 = fork()) == 0)
-    {
-        execvp(margs[0], margs);
-        sprintf(buf, "%s%s\n", "merge: failed to exec properly ", 
-        strerror(errno));
-        write(2, buf, strlen(buf));
-        exit(1);
-    }  
-    
-    if (pid2 < 0)
-    {
-        sprintf(buf, "Merge: Error in forking%s\n", "");
-        write(2, buf, strlen(buf));
-    }
-    sprintf(buf, "%s\n", "Main about to wait");
-    write(2, buf, strlen(buf));
-     
-       
     sprintf(buf, "%s\n", "out of forks");
     write(2, buf, strlen(buf));
     /* Uncomment the sleep below to get program to stop before wait, since it
@@ -431,23 +441,13 @@ int main(int argc, char **argv)
     write(1, buf, strlen(buf));
     sprintf(buf, "wait 2: %d\n", (wait2 = wait(&status2)));
     write(1, buf, strlen(buf));
-    sprintf(buf, "err1: %s\n", strerror(status1));
+    sprintf(buf, "err1: %s\n", strerror(wait1));
     write(1, buf, strlen(buf));
-    sprintf(buf, "err2: %s\n", strerror(status2));
+    sprintf(buf, "err2: %s\n", strerror(wait2));
     write(1, buf, strlen(buf));
     if (wait1 == ECHILD)
     {
         
-    }
-    if (WIFEXITED(status2))
-    {
-        sprintf(buf, "Exited with status %d\n", WEXITSTATUS(status2));
-        write(2, buf, strlen(buf));
-    }
-    else
-    {
-        sprintf(buf, "Qsort didn't exit: %s\n", "");
-        write(2, buf, strlen(buf));
     }
     if (WIFEXITED(status1)== 0)
     {

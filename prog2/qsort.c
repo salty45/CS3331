@@ -107,6 +107,50 @@ void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
     qargs[5] = '\0';
 }
 
+
+
+
+long countArr(long *arr, long start, long end)
+{
+    long i = 0;
+    long arrLen = 0;
+    char buf[12];
+    for (i = start; i <= end; i++)
+    {
+        sprintf(buf, " %ld ", arr[i]);
+        arrLen += strlen(buf);
+    }
+    return arrLen;
+}
+
+void printArray(long *arr, long start, long end)
+{
+    long arrLen = countArr(arr, start, end);
+    char *msg = "%3s### Q-PROC(%4d): entering with a[%ld..%ld]\n";
+    char buf[120];
+    long length = 0;
+    char *printout;
+    long i;
+    sprintf(buf, msg, "", getpid(), start, end);
+    length = arrLen + strlen(buf) + 3 + 7;
+    printout = malloc(sizeof(char) * length);
+    sprintf(printout, "%s", "");
+    strcat(printout, buf);
+    sprintf(buf, "%6s", "");
+    strcat(printout, buf);
+    for (i = start; i <= end; i++)
+    {
+        sprintf(buf, " %ld ", arr[i]);
+        strcat(printout, buf);
+    }
+    strcat(printout, "\n\n");
+    write(1, printout, strlen(printout));
+    /*printf("%s\n", printout);*/
+    free(printout);
+}
+
+
+
 /* 
  * Communication protocol:
  * argv[1] = left
@@ -134,8 +178,6 @@ int main(int argc, char **argv)
     char *arrBuf;
     int numLen = 0;
     int i = 0;
-    sprintf(buf, "%s\n", "Hello QSORT");
-    write(2, buf, strlen(buf));
     /* Verify args have come in correctly */
     if (argc < numArgs || argc > numArgs)
     {
@@ -149,8 +191,8 @@ int main(int argc, char **argv)
     right = atol(argv[2]);
     k = atoi(argv[3]);
     size = atol(argv[4]);    
-    sprintf(buf, msg, "", getpid(), left, right);
-    write(1, buf, strlen(buf));
+/*    sprintf(buf, msg, "", getpid(), left, right);
+    write(1, buf, strlen(buf));*/
  
         
     /* Attach to the shared memory */
@@ -164,28 +206,48 @@ int main(int argc, char **argv)
     }
 
     /* Print the array */
-    numLen = 0;
-    
- 
-    /* Partition the array */
-    pivot = lomuto(arr, left, right);
-    
-    return 0; 
-    /* Set up the args for the child processes */
-    setArgsQsort(argsk1, left, pivot - 1, k, size);
-    setArgsQsort(argsk2, pivot + 1, right, k, size);
+    printArray(arr, left, right);
+    if (left > 10)
+    {
+        shmdt((void *)arr);
+        exit(1);
+    }
+    left = 10;
+    right = 2;
+    if (left < right)
+    {
+        /* Partition the array */
+        pivot = lomuto(arr, left, right);
+        printArray(arr, left, right);
+/*        return 0; */
+   
+        /* Set up the args for the child processes */
+        setArgsQsort(argsk1, left, pivot - 1, k, size);
+        setArgsQsort(argsk2, pivot + 1, right, k, size);
 
-    /* Fork to create the children, then exec to run them */
-    if ((pid = fork()) < 0)
+        /* Fork to create the children, then exec to run them */
+        if ((pid = fork()) == 0)
+        {
+            execvp(argsk1[0], argsk1);
+            
+        }          
+        if ((pid == fork()) == 0)
+        {
+            execvp(argsk2[0], argsk2);
+        }
+        wait(&pid);
+        wait(&pid);   
+    }
+/*    if ((pid = fork()) < 0)
     {
 
     } 
     else if (pid == 0)
     {
         if (execvp(argsk1[0], argsk1) < 0)
-        {
+        {*/
             /* TODO: error handling */
-        }
+  /*      }
     }
     else
     {
@@ -196,9 +258,9 @@ int main(int argc, char **argv)
         else if (pid == 0)
         {
             if (execvp(argsk2[0], argsk2) < 0)
-            {
+            {*/
                 /*TODO: error handling */
-            }
+     /*       }
         }   
         else
         {
@@ -206,7 +268,7 @@ int main(int argc, char **argv)
             wait(&pid); 
         }
         
-    }
+    }*/
     
    
 
