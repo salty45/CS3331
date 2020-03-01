@@ -101,26 +101,26 @@ long binSearch(long i, long *x, long ix, long *y, long iy, char *ms, char c)
     char other = 'y';
     long k = 0;
     long j = iy - 1;
-    long m = (j - k) / 2 + 1;
+    long m = (j + k) / 2;
 
     if (c == 'x')
         other = 'y';
     else
         other = 'x';
 
-    while (k < j) 
+    while (k <= j) 
     {
         if (x[i] < y[m])
         {
             /* Guessed an index that was too large */
             j = m - 1;
-            m = (j - k) / 2 + 1; 
+            m = (j + k) / 2; 
         }
         else 
         {
             /* Guessed an index that was too small */
             k = m + 1;
-            m = m + (j - k) / 2 + 1;
+            m = (j + k) / 2;
         }
     }
     
@@ -128,7 +128,7 @@ long binSearch(long i, long *x, long ix, long *y, long iy, char *ms, char c)
     sprintf(buf, form, ms, c, i, x[i], bet, other, m - 1, y[m - 1], 
             other, m, y[m]);
     write(1, buf, strlen(buf));
-    return m + i;
+    return k + i;
 }
 
 void merge(long i, long *x, long *y, long *r, long ix, long iy, long ir, char *m, char c) 
@@ -184,7 +184,7 @@ void merge(long i, long *x, long *y, long *r, long ix, long iy, long ir, char *m
     }
     sprintf(buf, oMsg, m, curr, endElem);
     write(1, buf, strlen(buf));
-   
+    r[endElem] = x[i]; 
 }
 
 
@@ -210,7 +210,6 @@ int main (int argc, char **argv)
     char msgbuf[80];
     int numArgs = 9; 
     int shmID = 0;
-   /* key_t key;*/
     long *x = NULL;
     long *y = NULL;
     long *res = NULL;   
@@ -314,13 +313,7 @@ int main (int argc, char **argv)
     
     for (i = 0; i < lenx + leny; i++)
         wait(&pid);    
-/*{
-    sprintf(buf, "Waiting... %s\n", "");
-    write(1, buf, strlen(buf));
-        wait(&pid);
-    sprintf(buf, "Nowait%s\n", "");
-    write(1, buf, strlen(buf));
-    }*/
+
     shmdt(x);
     return 0;
 }

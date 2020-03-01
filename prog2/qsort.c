@@ -212,8 +212,8 @@ int main(int argc, char **argv)
         shmdt((void *)arr);
         exit(1);
     }
-    left = 10;
-    right = 2;
+    /*left = 10;
+    right = 2;*/
     if (left < right)
     {
         /* Partition the array */
