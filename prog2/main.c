@@ -248,8 +248,18 @@ int loadData(long **data, struct dataInfo *datai)
 /* ------------------------------------------------------------------------- */
 int detachRemMem(long *data, int shmID)
 {
+    char buf[80];
     int res = shmdt((void *) data);
-    shmctl(shmID, IPC_RMID, NULL);
+    if (res == 0)
+    {
+        sprintf(buf, "*** MAIN: shared memory successfully detached%s\n", "");
+        write(1, buf, strlen(buf));
+    }
+    if (shmctl(shmID, IPC_RMID, NULL) != -1)
+    {
+        sprintf(buf, "*** MAIN: shared memory successfully removed%s\n", "");
+        write(1, buf, strlen(buf));
+    }
     return res;
 }
 
@@ -360,20 +370,21 @@ void printArray2(long *arr, long start, long end, char *msg)
     sprintf(buf, msg, "", getpid(), start, end);
     printf("%s\n", buf);*/
     sprintf(buf, "%s", msg);
-    length = arrLen + strlen(buf) + 3 + 7;
+    length = arrLen + strlen(buf) + 3 + 5;
    /* printf("length: %ld\n", length);*/
     printout = malloc(sizeof(char) * length);
    /* printf("hello\n");*/
     sprintf(printout, "%s", "");
     strcat(printout, buf);
 /*    printf("%s\n", printout);*/
-    sprintf(buf, "%7s", "");
+    sprintf(buf, "%5s", "");
     strcat(printout, buf);
     for (i = start; i <= end; i++)
     {
         sprintf(buf, "%ld ", arr[i]);
         strcat(printout, buf);
     }
+    strcat(printout, "\n\n");
     write(1, printout, strlen(printout));
    /* printf("%s\n", printout);*/
     free(printout);
@@ -410,9 +421,10 @@ int main(int argc, char **argv)
     char *margs[9];
     int status1, status2;
     int wait1, wait2;
-
+    int av = atoi(argv[1]);
 
     /* Arguments for exec */
+
     char *qarg0 = "./qsort" ;
     char qarg1[12];
     char qarg2[12];
@@ -430,7 +442,7 @@ int main(int argc, char **argv)
     char marg7[12];
     char marg8[12];
     char marg9 = '\0';
-
+if (av != 1) {
     /* initialize the arguments to be 0's */
     bzero(qarg1, 12);
     bzero(qarg2, 12);
@@ -466,7 +478,7 @@ int main(int argc, char **argv)
     margs[7] = marg7;
     margs[8] = marg8;
     margs[9] = marg9;
- 
+ }
    
     /* Print out some info */
     sprintf(buf, "%s\n\n", msg);
@@ -489,9 +501,14 @@ int main(int argc, char **argv)
     printf("Data : %ld\n", data);
  
     /* Set up the args for qsort and merge */
-    /*setArgsQsort(qargs, 0, datai -> k - 1, shmID, datai -> totLen);
+if (av == 1)
+{
+    setArgsQsort(qargs, 0, datai -> k - 1, shmID, datai -> totLen);
     printf("data? %ld\n", data[0]);
-    setArgsMsort(margs, datai, shmID);*/
+    setArgsMsort(margs, datai, shmID);
+}
+
+if (av != 1) {
     sprintf(qarg1, "%ld", 0);
     sprintf(qarg2, "%ld", datai -> k - 1);
     sprintf(qarg3, "%d", shmID);
@@ -505,24 +522,24 @@ int main(int argc, char **argv)
     sprintf(marg6, "%ld", datai -> datLen);
     sprintf(marg7, "%d", shmID);
     sprintf(marg8, "%ld", datai -> totLen);
-   
+}
 
-    for (i = 0; i < 5; i++)
-        printf("qargs[%d] = %s\n", i, qargs[i]);
+/*    for (i = 0; i < 5; i++)
+        printf("qargs[%d] = %s\n", i, qargs[i]);*/
  
-/*
+if (av != 1) {
     qargs[0] = qarg0;
     qargs[1] = qarg1;
     qargs[2] = qarg2;
     qargs[3] = qarg3;
     qargs[4] = qarg4;
     qargs[5] = qarg5;
-*/
+
     printf("datum: %ld\n", data);
     i = data[0];
     printf("data c: %ld\n", data[0]);
     
-  /*  margs[0] = marg0;
+    margs[0] = marg0;
     margs[1] = marg1;
     margs[2] = marg2;
     margs[3] = marg3;
@@ -532,7 +549,7 @@ int main(int argc, char **argv)
     margs[7] = marg7;
     margs[8] = marg8;
     margs[9] = marg9;
-*/
+}
     
 
 
@@ -635,29 +652,37 @@ int main(int argc, char **argv)
         sprintf(buf, "no exit %s\n", "");
         write(1, buf, strlen(buf));
     }
+    
+    /* Print out the sorted arrays */
     sprintf(buf, format, "sorted array by qsort:");
-    write(1, buf, strlen(buf));
+    printArray2(data, datai -> sk, datai -> k - 1, buf);
+    /*write(1, buf, strlen(buf));
     for (i = datai -> sk; i < datai -> k; i++)
         printf(" %ld ", data[i]);
-    printf("%s\n", "");
+    printf("%s\n", "");*/
 /*    printArray(data, datai -> sk, datai -> k, msg, "qsort");*/
     sprintf(buf, format, "merged array:");
-    write(1, buf, strlen(buf));
+    printArray2(data, datai -> sdat, datai -> sdat + datai -> datLen - 1, buf);
+/*    write(1, buf, strlen(buf));*/
     /*printArray(data, datai -> sdat, datai -> datLen, msg, "merge");*/
-    printf("%4s", "");
+   /* printf("%4s", "");
     printf("val data: %ld\n", datai -> sdat);
-    printf("data[0] = %ld\n", data[0]);
-    /*printArray2(data, 0, datai -> totLen - 1, "abc: \n");*/
+    printf("data[0] = %ld\n", data[0]);*/
+    /*printArray2(data, 0, datai -> totLen - 1, "abc: \n");
     for (i = datai -> sdat; i < datai -> sdat + datai -> datLen; i++)
             printf(" %ld ", data[i]);
-    printf("%s\n", "");
+    printf("%s\n", "");*/
     /* Free the argument arrays */
- /*   for (i = 0; i < 5; i++)
-        free(qargs[i]);
-    for (i = 0; i < 9; i++)
-        free(margs[i]);*/
+    if (av == 1)
+    {
+        for (i = 0; i < 5; i++)
+            free(qargs[i]);
+        for (i = 0; i < 9; i++)
+            free(margs[i]);
+    
     sprintf(buf, "%s\n", "freeing complete");
     write(2, buf, strlen(buf));
+    }
     detachRemMem(data, shmID);
 
     return 0;

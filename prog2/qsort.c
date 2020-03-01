@@ -285,7 +285,9 @@ int main(int argc, char **argv)
         write(2, buf, strlen(buf));
         exit(1);
     }
-       
+      
+    sprintf(buf, "%3s Q-PROC(%4d): exits%s\n", "", getpid(), "");
+    write(1, buf, strlen(buf));
     
     return 0;
 }
