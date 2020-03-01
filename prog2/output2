@@ -1,0 +1,133 @@
+Quicksort and Binary Merge with Multiple Processes:
+
+*** MAIN: shared memory key = 1782675843
+*** MAIN: shared memory created
+*** MAIN: shared memory attached and is ready to use
+Input array for qsort has 8 elements:
+    4  7  2  9  3  5  8  6 
+
+Input array x[] for merge has 6 elements:
+    1  3  7  15  17  24 
+
+Input array y[] for merge has 5 elements:
+    2  8  16  18  20 
+
+*** MAIN: about to spawn the process for qsort
+*** MAIN: about to spawn the process for merge
+Data - O: 4
+   ### Q-PROC(163436): entering with a[0..7]
+       4  7  2  9  3  5  8  6 
+
+buff x: 
+QZ(163436): before fork
+X? 1
+      $$$$ M-PROC(163437): Main merge process
+QW(163436): after 1st fork
+QP(163436): Waiting for kids...
+      $$$ M-PROC(163441): handling x[1] = 3
+      $$$ M-PROC(163442): handling x[2] = 7
+      $$$ M-PROC(163441): x[1] = 3 is found between y[-1] = 24 and y[0] = 2
+      $$$ M-PROC(163442): x[2] = 7 is found between y[-1] = 24 and y[0] = 2
+      $$$ M-PROC(163441): about to write x[1] = 3 into position 2 of the output array
+      $$$ M-PROC(163442): about to write x[2] = 7 into position 3 of the output array
+      $$$ M-PROC(163439): handling x[0] = 1
+      $$$ M-PROC(163439): x[0] = 1 is found to be smaller than y[0] = 2
+      $$$ M-PROC(163439): about to write x[0] = 1 into position 0 of the output array
+      $$$ M-PROC(163443): handling x[3] = 15
+      $$$ M-PROC(163443): x[3] = 15 is found between y[0] = 2 and y[1] = 8
+      $$$ M-PROC(163443): about to write x[3] = 15 into position 5 of the output array
+      $$$ M-PROC(163444): handling x[4] = 17
+      $$$ M-PROC(163444): x[4] = 17 is found between y[1] = 8 and y[2] = 16
+      $$$ M-PROC(163444): about to write x[4] = 17 into position 7 of the output array
+      $$$ M-PROC(163445): handling x[5] = 24
+      $$$ M-PROC(163445): x[5] = 24 is found to be larger than y[4] = 20
+      $$$ M-PROC(163445): about to write x[5] = 24 into position 10 of the output array
+      $$$ M-PROC(163446): handling y[0] = 2
+      $$$ M-PROC(163446): y[0] = 2 is found between x[-1] = 6 and x[0] = 1
+      $$$ M-PROC(163446): about to write y[0] = 2 into position 1 of the output array
+      $$$ M-PROC(163447): handling y[1] = 8
+      $$$ M-PROC(163447): y[1] = 8 is found between x[1] = 3 and x[2] = 7
+      $$$ M-PROC(163447): about to write y[1] = 8 into position 4 of the output array
+      $$$ M-PROC(163448): handling y[2] = 16
+      $$$ M-PROC(163448): y[2] = 16 is found between x[2] = 7 and x[3] = 15
+      $$$ M-PROC(163448): about to write y[2] = 16 into position 6 of the output array
+      $$$ M-PROC(163449): handling y[3] = 18
+      $$$ M-PROC(163449): y[3] = 18 is found between x[3] = 15 and x[4] = 17
+      $$$ M-PROC(163449): about to write y[3] = 18 into position 8 of the output array
+      $$$ M-PROC(163450): handling y[4] = 20
+      $$$ M-PROC(163450): y[4] = 20 is found between x[3] = 15 and x[4] = 17
+      $$$ M-PROC(163450): about to write y[4] = 20 into position 9 of the output array
+   ### Q-PROC(163440): entering with a[3..7]
+       9  7  5  8  6 
+
+QZ(163440): before fork
+   ### Q-PROC(163438): entering with a[0..1]
+       3  2 
+
+QZ(163438): before fork
+QW(163440): after 1st fork
+QW(163438): after 1st fork
+QP(163440): Waiting for kids...
+QP(163438): Waiting for kids...
+wait 1: 163437
+   ### Q-PROC(163452): entering with a[0..0]
+       2 
+
+   ### Q-PROC(163454): entering with a[2..1]
+      
+
+   ### Q-PROC(163451): entering with a[3..6]
+       6  7  5  8 
+
+QZ(163451): before fork
+QW(163451): after 1st fork
+Kid 1: Success
+Kid 2: Success
+QP(163451): Waiting for kids...
+   ### Q-PROC(163453): entering with a[8..7]
+      
+
+Kid 1: Success
+   ### Q-PROC(163455): entering with a[3..3]
+       5 
+
+Kid 1: Success
+   ### Q-PROC(163456): entering with a[5..6]
+       7  8 
+
+QZ(163456): before fork
+QW(163456): after 1st fork
+QP(163456): Waiting for kids...
+Kid 1: Success
+   ### Q-PROC(163457): entering with a[5..4]
+      
+
+   ### Q-PROC(163458): entering with a[6..6]
+       8 
+
+Kid 1: Success
+Kid 2: Success
+Kid 2: Success
+Kid 2: Success
+Kid 2: Success
+wait 2: 163436
+err1: Success
+err2: Success
+*** MAIN: sorted array by qsort:
+*** MAIN: merged array:
+data e: 4
+data n: 0
+Data : 139633383493632
+qargs[0] = ./qsort
+qargs[1] = 0
+qargs[2] = 7
+qargs[3] = 130416643
+qargs[4] = 30
+datum: 139633383493632
+data c: 4
+data a: 4
+data b: 0
+ 2  3  4  5  6  7  8  9 
+    val data: 19
+data[0] = 2
+ 1  2  3  7  8  15  16  17  18  20  24 

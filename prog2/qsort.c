@@ -165,17 +165,13 @@ int main(int argc, char **argv)
     long pivot = 0;
     char *argsk1[numArgs + 1];
     char *argsk2[numArgs + 1];
-    long left, right;
-    int k;     
+    long left, right;  
     
     int pid; 
-    key_t key;
     int memID;
     long *arr;
     long size;
-    char *msg = "%3s Q-PROC(%d): entering with a[%ld..%ld]\n";
-    char *printArr;
-    char *arrBuf;
+    /*char *msg = "%3s Q-PROC(%d): entering with a[%ld..%ld]\n";*/
     int numLen = 0;
     int i = 0;
     /* Verify args have come in correctly */
@@ -189,14 +185,14 @@ int main(int argc, char **argv)
     /* Read in the command-line args */
     left = atol(argv[1]);
     right = atol(argv[2]);
-    k = atoi(argv[3]);
+    memID = atoi(argv[3]);
     size = atol(argv[4]);    
 /*    sprintf(buf, msg, "", getpid(), left, right);
     write(1, buf, strlen(buf));*/
  
         
     /* Attach to the shared memory */
-    arr = (long *) shmat(k, NULL, 0);
+    arr = (long *) shmat(memID, NULL, 0);
     if (arr == (void *) -1)
     {
         sprintf(buf, "%s\n", "failed to attach to mem");
@@ -207,36 +203,43 @@ int main(int argc, char **argv)
 
     /* Print the array */
     printArray(arr, left, right);
-    if (left > 10)
-    {
-        shmdt((void *)arr);
-        exit(1);
-    }
-    /*left = 10;
+        /*left = 10;
     right = 2;*/
     if (left < right)
     {
         /* Partition the array */
         pivot = lomuto(arr, left, right);
-        printArray(arr, left, right);
+    /*    printArray(arr, left, right);*/
 /*        return 0; */
    
         /* Set up the args for the child processes */
-        setArgsQsort(argsk1, left, pivot - 1, k, size);
-        setArgsQsort(argsk2, pivot + 1, right, k, size);
+        setArgsQsort(argsk1, left, pivot - 1, memID, size);
+        setArgsQsort(argsk2, pivot + 1, right, memID, size);
 
+        sprintf(buf, "QZ(%4d): before fork\n", getpid());
+        write(1, buf, strlen(buf));
         /* Fork to create the children, then exec to run them */
         if ((pid = fork()) == 0)
         {
-            execvp(argsk1[0], argsk1);
-            
-        }          
-        if ((pid == fork()) == 0)
+            execvp(argsk1[0], argsk1);       
+            exit(1);
+        }
+        sprintf(buf, "QW(%4d): after 1st fork\n", getpid());
+        write(1, buf, strlen(buf));          
+        if ((pid = fork()) == 0)
         {
             execvp(argsk2[0], argsk2);
+            exit(1);
         }
+        sprintf(buf, "QP(%4d): Waiting for kids...\n", getpid());
+        write(1, buf, strlen(buf));
+        
         wait(&pid);
+        sprintf(buf, "Kid 1: %s\n", strerror(pid));
+        write(1, buf, strlen(buf));
         wait(&pid);   
+        sprintf(buf, "Kid 2: %s\n", strerror(pid));
+        write(1, buf, strlen(buf));
     }
 /*    if ((pid = fork()) < 0)
     {
