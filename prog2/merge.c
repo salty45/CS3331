@@ -53,47 +53,11 @@ struct DataInfo
     long totLen;
 };
 
-/*
-void errHandleShm(long *data, int shmID, int eval)
-{
-    char buf[80];
-    if (eval != -1)
-        return;
-    if (data != NULL)
-        shmdt((void *) data);
-    sprintf(buf, "*** MAIN: %s\n", "shared mem error...cleaning up + exiting");
-    write(2, buf, strlen(buf));
-    exit(1);
-}*/
-
-
-/* Creates shared memory and returns its id */
-/*int createShm(long **data, struct dataInfo *datai)
-{
-    int shmID = 0;
-    char buf[80];
-    key_t key;
-    char *msg = "*** MAIN: ";*/
-
-    /* Get the key and print it out */
-/*    key = ftok("./", 'j');
-    errHandleShm(*data, -1, key);*/
-
-    /* Create the shared memory */
-/*    shmID = shmget(key, (datai -> totLen) * sizeof(long), 0666);
-    errHandleShm(*data, shmID, shmID);*/
-
-   /* Attach to the shared memory */
-/*    *data = (long *) shmat(shmID, NULL, 0);
-     errHandleShm(*data, shmID, (int) *data);
-     return shmID;
-}*/
-
 
 /* ------------------------------------------------------------------------- */
 /* FUNCTION: binSearch                                                       */
-/*    Performs a binary search to find and */ 
-long binSearch(long i, long *x, long ix, long *y, long iy, char *ms, char c)
+/*    Performs a binary search to find and */
+long binSearch(long i, long *x, long *y, long iy, char *ms, char c)
 {
     char buf[80];
     char *bet = " is found between ";
@@ -108,30 +72,30 @@ long binSearch(long i, long *x, long ix, long *y, long iy, char *ms, char c)
     else
         other = 'x';
 
-    while (k <= j) 
+    while (k <= j)
     {
         if (x[i] < y[m])
         {
             /* The value in array x is smaller than the element in y */
             j = m - 1;
-            m = (j + k) / 2; 
+            m = (j + k) / 2;
         }
-        else 
+        else
         {
             /* The value at array x[i] is larger than the element at y[m]*/
             k = m + 1;
             m = (j + k) / 2;
         }
     }
-    
-    
-    sprintf(buf, form, ms, c, i, x[i], bet, other, m - 1, y[m - 1], 
+
+
+    sprintf(buf, form, ms, c, i, x[i], bet, other, m - 1, y[m - 1],
             other, m, y[m]);
     write(1, buf, strlen(buf));
     return k + i;
 }
 
-void merge(long i, long *x, long *y, long *r, long ix, long iy, char *m, char c)
+void merge(long i, long *x, long *y, long *r, long iy, char *m, char c)
 {
     char buf[80];
     char o = 'y';
@@ -146,18 +110,18 @@ void merge(long i, long *x, long *y, long *r, long ix, long iy, char *m, char c)
     /* switch letters if y comes in first */
     if (c == 'y')
         o = 'x';
-   
-    /* print out some info */ 
+
+    /* print out some info */
     sprintf(curr, elem, c, i, x[i]);
     sprintf(buf, "%shandling %s\n", m, curr);
     write(1, buf, strlen(buf));
-    
+
     if (x[i] < y[0])
     {
         endElem = i;
-        sprintf(smaller, elem, o, 0, y[0]); 
+        sprintf(smaller, elem, o, 0, y[0]);
         sprintf(buf, msg, m, curr, "smaller", smaller);
-        write(1, buf, strlen(buf));  
+        write(1, buf, strlen(buf));
     }
     else if (x[i] > y[iy - 1])
     {
@@ -168,11 +132,11 @@ void merge(long i, long *x, long *y, long *r, long ix, long iy, char *m, char c)
     }
     else
     {
-        endElem = binSearch(i, x, ix, y, iy, m, c);
+        endElem = binSearch(i, x, y, iy, m, c);
     }
     sprintf(buf, oMsg, m, curr, endElem);
     write(1, buf, strlen(buf));
-    r[endElem] = x[i]; 
+    r[endElem] = x[i];
 }
 
 
@@ -196,12 +160,12 @@ int main (int argc, char **argv)
     char *msg = "Incorrect num args:  found";
     char *format = "%6s$$$ M-PROC(%4d): ";
     char msgbuf[80];
-    int numArgs = 9; 
+    int numArgs = 9;
     int shmID = 0;
     long *x = NULL;
     long *y = NULL;
-    long *res = NULL;   
-    long *data = NULL;  
+    long *res = NULL;
+    long *data = NULL;
     long startX = 0, startY = 0, startOutput = 0;
     long lenx = 0, leny = 0, leno = 0;
     long dataLen = 0;
@@ -213,7 +177,7 @@ int main (int argc, char **argv)
     {
         sprintf(msgbuf, "%s", "");
         strcat(msgbuf, format);
-        strcat(msgbuf, "%s %d expected %d\n");   
+        strcat(msgbuf, "%s %d expected %d\n");
         sprintf(buf, msgbuf, "", getpid(), msg, argc, numArgs);
         write(1, buf, strlen(buf));
         exit(1);
@@ -229,49 +193,36 @@ int main (int argc, char **argv)
     shmID = atoi(argv[7]);
     dataLen = atol(argv[8]);
 
-    /* get and attach to shared memory with checks */   
+    /* get and attach to shared memory with checks */
     data = (long *) shmat(shmID, NULL, 0);
     /* no need to error check: if I fail to attach, I can't possibly detach */
     if (data == (void *) -1)
-        pid = -1;         
+        pid = -1;
 
     /* Initialize the arrays */
     x = &data[startX];
-    sprintf(buf, "buff x: %s\n", "");
-    write(1, buf, strlen(buf));
     y = &data[startY];
     res = &data[startOutput];
-    sprintf(buf, "X? %ld\n", x[0]);
-    write(1, buf, strlen(buf));
 
     sprintf(buf, "%6s$$$$ M-PROC(%4d): Main merge process\n", "", getpid());
-    write(1, buf, strlen(buf)); 
+    write(1, buf, strlen(buf));
 
     /* fork m + n kiddos to do the work */
     for (i = 0; i < lenx; i++)
     {
         if ((pid = fork()) < 0)
         {
-            sprintf(buf, "%s\n", "Forking error");
+            sprintf(buf, "%6s$$$$ M-PROC(%4d): Forking error\n", "", getpid());
             write(2, buf, strlen(buf));
         }
         else if (pid == 0)
         {
-            /*strcat(buf, format);
-            strcat(buf, "handling x[%ld] = %ld"); 
-            sprintf(msgbuf, buf, getpid(), i, x[i]);
-*/
-        /*    sprintf(msgbuf, "Proc %d handling x[%ld]\n", getpid(), i);
-            write(1, msgbuf, strlen(msgbuf)); 
-            
-            sprintf(buf, "Nice day!%s\n", "");
-            write(1, buf, strlen(buf));*/
             sprintf(buf, "%6s$$$ M-PROC(%4d): ", "", getpid());
-            merge(i, x, y, res, lenx, leny, buf, 'x');
+            merge(i, x, y, res, leny, buf, 'x');
             exit(0);
         }
     }
-    
+
     for (i = 0; i < leny; i++)
     {
         if ((pid = fork()) < 0)
@@ -282,17 +233,14 @@ int main (int argc, char **argv)
         else if (pid == 0)
         {
             sprintf(buf, "%6s$$$ M-PROC(%4d): ", "", getpid());
-            merge(i, y, x, res, leny, lenx, buf, 'y');
+            merge(i, y, x, res, lenx, buf, 'y');
             exit(0);
         }
     }
-    
+
     for (i = 0; i < lenx + leny; i++)
-        wait(&pid);    
+        wait(&pid);
 
     shmdt(x);
     return 0;
 }
- 
-
-

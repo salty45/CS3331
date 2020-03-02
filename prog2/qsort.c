@@ -1,13 +1,14 @@
 /* ------------------------------------------------------------------------- */
 /* NAME: Sarah Larkin                                      User ID: selarkin */
-/* DUE DATE: 02/24/2020                                                      */
+/* DUE DATE: 03/02/2020                                                      */
 /* PROGRAM ASSIGNMENT 2                                                      */
-/* FILE NAME: main.c                                                         */
+/* FILE NAME: qsort.c                                                        */
 /* PROGRAM PURPOSE:                                                          */
-/*    This program forks a child process that executes qsort.c to sort an    */
-/*    array using quicksort.  Concurrently, it performs a binary merge on    */
-/*    another two arrays by forking a child to execute merge.c.  The arrays  */
-/*    are transferred between processes by using shared memory.              */
+/*    This program recursively forks child processes to sort an input array  */
+/*    using quicksort with a lomuto partition.  Each process prints out some */
+/*    messages about its incoming array, partition, and when it exits.  The  */
+/*    array is accessed by attaching to shared memory using a key specified  */
+/*    in program arguments.                                                  */
 /* ------------------------------------------------------------------------- */
 
 #include <stdio.h>
@@ -65,23 +66,6 @@ int lomuto(long *arr, long l, long r)
 }
 
 /* ------------------------------------------------------------------------- */
-/* FUNCTION setArgs                                                          */
-/*    Utility sets the argument array before forking and executing           */
-/* PARAMETER USAGE:                                                          */
-/*    args: the argument array                                               */
-/*    left: the left most index                                              */
-/*    right: the */
-/*void setArgs(char **args, long left, long right, int k, long size)
-{
-    sprintf(args[0], "%s", "./qsort");
-    sprintf(args[1], "%ld", left);
-    sprintf(args[2], "%ld", right);
-    sprintf(args[3], "%d", k);
-    sprintf(args[4], "%ld", size);
-    sprintf(args[5], "%c", '\0');
-}*/
-
-/* ------------------------------------------------------------------------- */
 /* FUNCTION: setArgsQsort                                                    */
 /*    Utility function fills the argument array to use when executing qsort  */
 /* PARAMETER USAGE:                                                          */
@@ -107,9 +91,17 @@ void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
     qargs[5] = '\0';
 }
 
-
-
-
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: countArr                                                        */
+/*    Utility function counts and returns the number of ASCII characters     */
+/*    needed to print the given segment of the given array.                  */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    start: the index of the leftmost element in the array                  */
+/*    end: the index of the rightmost element in the array                   */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 long countArr(long *arr, long start, long end)
 {
     long i = 0;
@@ -123,10 +115,22 @@ long countArr(long *arr, long start, long end)
     return arrLen;
 }
 
-void printArray(long *arr, long start, long end)
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: printArray                                                      */
+/*    Utility function prints the given message with the given array segment */
+/*    as a single write statement.  The message is assumed to be of the      */
+/*    format to take arguments of %s %d %ld %ld                              */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    start: the index of the leftmost element in the array                  */
+/*    end: the index of the rightmost element in the array                   */
+/* TODO: */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
+void printArray(long *arr, long start, long end, char * msg)
 {
     long arrLen = countArr(arr, start, end);
-    char *msg = "%3s### Q-PROC(%4d): entering with a[%ld..%ld]\n";
     char buf[120];
     long length = 0;
     char *printout;
@@ -145,13 +149,18 @@ void printArray(long *arr, long start, long end)
     }
     strcat(printout, "\n\n");
     write(1, printout, strlen(printout));
-    /*printf("%s\n", printout);*/
     free(printout);
 }
 
+void freeArgArray(char *arr[], int len)
+{
+    int i = 0;
+    for (i = 0; i < len; i++)
+        free(arr[i]);
+}
 
 
-/* 
+/*
  * Communication protocol:
  * argv[1] = left
  * argv[2] = right
@@ -165,15 +174,16 @@ int main(int argc, char **argv)
     long pivot = 0;
     char *argsk1[numArgs + 1];
     char *argsk2[numArgs + 1];
-    long left, right;  
-    
-    int pid; 
+    long left, right;
+
+    int pid;
     int memID;
     long *arr;
     long size;
-    /*char *msg = "%3s Q-PROC(%d): entering with a[%ld..%ld]\n";*/
-    int numLen = 0;
-    int i = 0;
+    char *msg1 = "%3s### Q-PROC(%4d): entering with a[%ld..%ld]\n";
+    char *msg2 = "%3s### Q-PROC(%4d): section a[%ld..%ld] sorted\n";
+    char *msgPiv = "%3s### Q-PROC(%4d): pivot element is a[%ld] = %ld\n";
+
     /* Verify args have come in correctly */
     if (argc < numArgs || argc > numArgs)
     {
@@ -186,11 +196,9 @@ int main(int argc, char **argv)
     left = atol(argv[1]);
     right = atol(argv[2]);
     memID = atoi(argv[3]);
-    size = atol(argv[4]);    
-/*    sprintf(buf, msg, "", getpid(), left, right);
-    write(1, buf, strlen(buf));*/
- 
-        
+    size = atol(argv[4]);
+
+
     /* Attach to the shared memory */
     arr = (long *) shmat(memID, NULL, 0);
     if (arr == (void *) -1)
@@ -202,81 +210,42 @@ int main(int argc, char **argv)
     }
 
     /* Print the array */
-    printArray(arr, left, right);
-        /*left = 10;
-    right = 2;*/
-    if (left < right)
-    {
-        /* Partition the array */
-        pivot = lomuto(arr, left, right);
-    /*    printArray(arr, left, right);*/
-/*        return 0; */
-   
-        /* Set up the args for the child processes */
-        setArgsQsort(argsk1, left, pivot - 1, memID, size);
-        setArgsQsort(argsk2, pivot + 1, right, memID, size);
+    printArray(arr, left, right, msg1);
 
-        sprintf(buf, "QZ(%4d): before fork\n", getpid());
-        write(1, buf, strlen(buf));
-        /* Fork to create the children, then exec to run them */
+    /* Partition the array */
+    pivot = lomuto(arr, left, right);
+
+    sprintf(buf, msgPiv, "", getpid(), pivot, arr[pivot]);
+    write(1, buf, strlen(buf));
+
+    /* Set up the args for the child processes */
+    setArgsQsort(argsk1, left, pivot - 1, memID, size);
+    setArgsQsort(argsk2, pivot + 1, right, memID, size);
+
+    /* Fork to create the children, then exec to run them */
+    if (left <= pivot - 1)
+    {
         if ((pid = fork()) == 0)
         {
-            execvp(argsk1[0], argsk1);       
+            execvp(argsk1[0], argsk1);
             exit(1);
         }
-        sprintf(buf, "QW(%4d): after 1st fork\n", getpid());
-        write(1, buf, strlen(buf));          
+    }
+
+    if (pivot + 1 <= right)
+    {
         if ((pid = fork()) == 0)
         {
             execvp(argsk2[0], argsk2);
             exit(1);
         }
-        sprintf(buf, "QP(%4d): Waiting for kids...\n", getpid());
-        write(1, buf, strlen(buf));
-        
-        wait(&pid);
-        sprintf(buf, "Kid 1: %s\n", strerror(pid));
-        write(1, buf, strlen(buf));
-        wait(&pid);   
-        sprintf(buf, "Kid 2: %s\n", strerror(pid));
-        write(1, buf, strlen(buf));
     }
-/*    if ((pid = fork()) < 0)
-    {
 
-    } 
-    else if (pid == 0)
-    {
-        if (execvp(argsk1[0], argsk1) < 0)
-        {*/
-            /* TODO: error handling */
-  /*      }
-    }
-    else
-    {
-        if ((pid = fork()) < 0)
-        {
-
-        } 
-        else if (pid == 0)
-        {
-            if (execvp(argsk2[0], argsk2) < 0)
-            {*/
-                /*TODO: error handling */
-     /*       }
-        }   
-        else
-        {
-            wait(&pid);
-            wait(&pid); 
-        }
-        
-    }*/
-    
-   
+    wait(&pid);
+    wait(&pid);
+    printArray(arr, left, right, msg2);
 
 
-    
     /* Finally, detach from shared memory */
     pivot = shmdt((void *) arr);
     if (pivot == -1)
@@ -285,9 +254,13 @@ int main(int argc, char **argv)
         write(2, buf, strlen(buf));
         exit(1);
     }
-      
-    sprintf(buf, "%3s Q-PROC(%4d): exits%s\n", "", getpid(), "");
+
+    /* Free the argument arrays */
+    freeArgArray(argsk1, numArgs + 1);
+    freeArgArray(argsk2, numArgs + 1);
+
+    sprintf(buf, "%3s### Q-PROC(%4d): exits%s\n", "", getpid(), "");
     write(1, buf, strlen(buf));
-    
+
     return 0;
 }

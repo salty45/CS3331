@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------- */
 /* NAME: Sarah Larkin                                      User ID: selarkin */
-/* DUE DATE: 02/24/2020                                                      */
+/* DUE DATE: 03/02/2020                                                      */
 /* PROGRAM ASSIGNMENT 2                                                      */
 /* FILE NAME: main.c                                                         */
 /* PROGRAM PURPOSE:                                                          */
@@ -20,7 +20,7 @@
 #include <errno.h>
 
 /* A struct to store a bunch of info on shared memory locations */
-struct dataInfo 
+struct dataInfo
 {
     long k;
     long m;
@@ -95,7 +95,7 @@ void setDataInfo(long k, long m, long n, struct dataInfo *datai)
     datai -> sm = k;
     datai -> sn = m + k;
     datai -> sdat = k  + m  + n;
-    datai -> datLen = m + n;   
+    datai -> datLen = m + n;
     datai -> totLen = k + m + n + datai -> datLen;
 }
 
@@ -140,7 +140,7 @@ int createShm(long **data, struct dataInfo *datai)
     int shmID = 0;
     char buf[80];
     key_t key;
-    char *msg = "*** MAIN: ";   
+    char *msg = "*** MAIN: ";
 
     /* Get the key and print it out */
     key = ftok("./", 'j');
@@ -153,13 +153,13 @@ int createShm(long **data, struct dataInfo *datai)
     errHandleShm(*data, shmID, shmID);
     sprintf(buf, "%sshared memory created\n", msg);
     write(1, buf, strlen(buf));
- 
+
     /* Attach to the shared memory */
     *data = (long *) shmat(shmID, NULL, 0);
     errHandleShm(*data, shmID, (int) *data);
     sprintf(buf, "%sshared memory attached and is ready to use\n", msg);
     write(1, buf, strlen(buf));
-   
+
     return shmID;
 }
 
@@ -188,7 +188,7 @@ void copyData(long *a, long *x, long *y, struct dataInfo *datai, long **data)
     for (i = 0; i < datai -> datLen; i++)
         (*data)[i + datai -> sdat] = 0;
 }
- 
+
 /* ------------------------------------------------------------------------- */
 /* FUNCTION freeArrays:                                                      */
 /*     Frees the three given arrays that held input temporarily              */
@@ -233,7 +233,7 @@ int loadData(long **data, struct dataInfo *datai)
     shmID = createShm(data, datai);
     copyData(a, x, y, datai, data);
     freeArrays(a, x, y);
-    return shmID; 
+    return shmID;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -266,7 +266,7 @@ int detachRemMem(long *data, int shmID)
 /* ------------------------------------------------------------------------- */
 /* FUNCTION: printArray                                                      */
 /*    Utility function prints out the given array from start to len.         */
-/* PARAMETER USAGE:         */
+/* PARAMETER USAGE:                                       */
 void printArray(long *arr, long start, long len, char *msg, char *val)
 {
     long i = 0;
@@ -337,7 +337,7 @@ void setArgsMsort(char *margs[10], struct dataInfo *datai, int shmID)
     sprintf(margs[6], "%ld", datai -> datLen);
     sprintf(margs[7], "%d", shmID);
     sprintf(margs[8], "%ld", datai -> totLen);
-    margs[9] = '\0';    
+    margs[9] = '\0';
 }
 
 
@@ -345,7 +345,6 @@ long countArr(long *arr, long start, long end)
 {
     long i = 0;
     long arrLen = 0;
-    long len = end - start + 1;
     char buf[12];
     for (i = start; i <= end; i++)
     {
@@ -355,28 +354,20 @@ long countArr(long *arr, long start, long end)
     return arrLen;
 }
 
+/* ------------------------------------------------------------------------- */
+/* */
 void printArray2(long *arr, long start, long end, char *msg)
 {
     long arrLen = countArr(arr, start, end);
-    printf("arr len: %ld\n", arrLen);
- /*   char *msg = "%3s### Q-PROC(%4d): entering with a[%ld..%ld]\n";*/
     char buf[120];
     long length = 0;
     char *printout;
     long i;
-   /* printf("What %ld\n", arrLen);*/
-   /* getpid();
-    printf("Works!\n");
-    sprintf(buf, msg, "", getpid(), start, end);
-    printf("%s\n", buf);*/
     sprintf(buf, "%s", msg);
     length = arrLen + strlen(buf) + 3 + 5;
-   /* printf("length: %ld\n", length);*/
     printout = malloc(sizeof(char) * length);
-   /* printf("hello\n");*/
     sprintf(printout, "%s", "");
     strcat(printout, buf);
-/*    printf("%s\n", printout);*/
     sprintf(buf, "%5s", "");
     strcat(printout, buf);
     for (i = start; i <= end; i++)
@@ -386,8 +377,14 @@ void printArray2(long *arr, long start, long end, char *msg)
     }
     strcat(printout, "\n\n");
     write(1, printout, strlen(printout));
-   /* printf("%s\n", printout);*/
     free(printout);
+}
+
+void freeArgArray(char *arr[], int len)
+{
+    int i = 0;
+    for (i = 0; i < len; i++)
+        free(arr[i]);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -414,81 +411,22 @@ int main(int argc, char **argv)
     int i = 0;
     int status = 0;
     char * format = "*** MAIN: %s\n";
-    long *data = NULL; 
+    long *data = NULL;
     struct dataInfo *datai = malloc(sizeof(struct dataInfo));
     char *msg = "Quicksort and Binary Merge with Multiple Processes:";
     char *qargs[5];
     char *margs[9];
     int status1, status2;
     int wait1, wait2;
-    int av = atoi(argv[1]);
 
-    /* Arguments for exec */
-
-    char *qarg0 = "./qsort" ;
-    char qarg1[12];
-    char qarg2[12];
-    char qarg3[12];
-    char qarg4[12];
-    char qarg5 = '\0';
-
-    char *marg0 = "./merge";
-    char marg1[12];
-    char marg2[12];
-    char marg3[12];
-    char marg4[12];
-    char marg5[12];
-    char marg6[12];
-    char marg7[12];
-    char marg8[12];
-    char marg9 = '\0';
-if (av != 1) {
-    /* initialize the arguments to be 0's */
-    bzero(qarg1, 12);
-    bzero(qarg2, 12);
-    bzero(qarg3, 12);
-    bzero(qarg4, 12);
-    bzero(marg1, 12);
-    bzero(marg2, 12);
-    bzero(marg3, 12);
-    bzero(marg4, 12);
-    bzero(marg5, 12);
-    bzero(marg6, 12);
-    bzero(marg7, 12);
-    bzero(marg8, 12);
-
-    qargs[0] = qarg0;
-    qargs[1] = qarg1;
-    qargs[2] = qarg2;
-    qargs[3] = qarg3;
-    qargs[4] = qarg4;
-    qargs[5] = qarg5;
-
-   /* printf("datum: %ld\n", data);
-    i = data[0];
-    printf("data c: %ld\n", data[0]);*/
-    
-    margs[0] = marg0;
-    margs[1] = marg1;
-    margs[2] = marg2;
-    margs[3] = marg3;
-    margs[4] = marg4;
-    margs[5] = marg5;
-    margs[6] = marg6;
-    margs[7] = marg7;
-    margs[8] = marg8;
-    margs[9] = marg9;
- }
-   
     /* Print out some info */
     sprintf(buf, "%s\n\n", msg);
     write(1, buf, strlen(buf));
-     
-    /* Load the data */  
-    /*TODO: is shm key to be printed as int or hex? */
+
+    /* Load the data */
     shmID = loadData(&data, datai);
 
-    
+
     /* Print the input arrays */
     msg = "Input array for %s has %ld elements:\n";
     printArray(data, datai -> sk, datai -> k, msg, "qsort");
@@ -496,193 +434,64 @@ if (av != 1) {
     printArray(data, datai -> sm, datai -> m, msg, "x");
     printArray(data, datai -> sn, datai -> n, msg, "y");
 
-    printf("data e: %ld\n", data[0]);
-    printf("data n: %ld\n", data[datai -> sdat]);
-    printf("Data : %ld\n", data);
- 
+
     /* Set up the args for qsort and merge */
-if (av == 1)
-{
     setArgsQsort(qargs, 0, datai -> k - 1, shmID, datai -> totLen);
-    printf("data? %ld\n", data[0]);
+
     setArgsMsort(margs, datai, shmID);
-}
 
-if (av != 1) {
-    sprintf(qarg1, "%ld", 0);
-    sprintf(qarg2, "%ld", datai -> k - 1);
-    sprintf(qarg3, "%d", shmID);
-    sprintf(qarg4, "%ld", datai -> totLen);
-
-    sprintf(marg1, "%ld", datai -> sm);
-    sprintf(marg2, "%ld", datai -> m);
-    sprintf(marg3, "%ld", datai -> sn);
-    sprintf(marg4, "%ld", datai -> n);
-    sprintf(marg5, "%ld", datai -> sdat);
-    sprintf(marg6, "%ld", datai -> datLen);
-    sprintf(marg7, "%d", shmID);
-    sprintf(marg8, "%ld", datai -> totLen);
-}
-
-/*    for (i = 0; i < 5; i++)
-        printf("qargs[%d] = %s\n", i, qargs[i]);*/
- 
-if (av != 1) {
-    qargs[0] = qarg0;
-    qargs[1] = qarg1;
-    qargs[2] = qarg2;
-    qargs[3] = qarg3;
-    qargs[4] = qarg4;
-    qargs[5] = qarg5;
-
-    printf("datum: %ld\n", data);
-    i = data[0];
-    printf("data c: %ld\n", data[0]);
-    
-    margs[0] = marg0;
-    margs[1] = marg1;
-    margs[2] = marg2;
-    margs[3] = marg3;
-    margs[4] = marg4;
-    margs[5] = marg5;
-    margs[6] = marg6;
-    margs[7] = marg7;
-    margs[8] = marg8;
-    margs[9] = marg9;
-}
-    
-
-
-
-
-    
-
-    printf("data a: %ld\n", data[0]);
-    printf("data b: %ld\n", data[datai -> sdat]);
- 
-    
-   
     sprintf(buf, format, "about to spawn the process for qsort");
     write(1, buf, strlen(buf));
 
     /* Perform the forks */
     if ((pid1 = fork()) == 0)
     {
-        
+
         status1 = execvp(qargs[0], qargs);
-        i = errno;
-        write(1, "EXEC FAILED\n", strlen("EXEC FAILED\n"));
-        
-        if (i == EACCES)
-           write(1, "q-EACCESS error\n", strlen("q-EACCESS error\n"));
-        else if (i == EIO)
-            write(1, "q-EIO error\n", strlen("q-EIO error\n"));
-        else if (i == ENOEXEC)
-            write(1, "q-ENOEXEC\n", strlen("q-ENOEXEC\n"));
-        else
-            strerror(i);
-        perror(&i);
-        sprintf(buf, "%d\n", i);
-        write(1, buf, strlen(buf));   
-       
-        sprintf(buf, "%s\n", "Qsort: failed to exec properly");
+
+        sprintf(buf, "*** MAIN: %s\n", "qsort failed to exec properly");
         write(2, buf, strlen(buf));
-        return 2;
-        sprintf(buf, "%s\n", "failed to exit");
-        write(2, buf, strlen(buf));
+        exit(1);
     }
     if (pid1 < 0)
     {
-        sprintf(buf, "Forking error: %s\n", strerror(errno));
+        sprintf(buf, "*** MAIN: Forking error: %s\n", strerror(errno));
         write(2, buf, strlen(buf));
     }
-    
+
     sprintf(buf, format, "about to spawn the process for merge");
     write(1, buf, strlen(buf));
     if ((pid2 = fork()) == 0)
     {
         execvp(margs[0], margs);
-        sprintf(buf, "%s%s\n", "merge: failed to exec properly ", 
+        sprintf(buf, "*** MAIN: %s%s\n", "merge: failed to exec properly ",
         strerror(errno));
         write(2, buf, strlen(buf));
         exit(1);
-    }  
-    
+    }
+
     if (pid2 < 0)
     {
-        sprintf(buf, "Merge: Error in forking%s\n", "");
+        sprintf(buf, "*** MAIN: Forking error: %s\n", strerror(errno));
         write(2, buf, strlen(buf));
     }
-    sprintf(buf, "%s\n", "Main about to wait");
-    write(2, buf, strlen(buf));
-     
-       
-    sprintf(buf, "%s\n", "out of forks");
-    write(2, buf, strlen(buf));
-    sprintf(buf, "Data - O: %ld\n", data[0]);
-    write(1, buf, strlen(buf));
-    /* Uncomment the sleep below to get program to stop before wait, since it
-     * currently doesn't stop to wait. WHY? */
-    /* sleep(30);*/
 
-    sprintf(buf, "wait 1: %d\n", (wait1 = wait(&status1)));
-    write(1, buf, strlen(buf));
-    sprintf(buf, "wait 2: %d\n", (wait2 = wait(&status2)));
-    write(1, buf, strlen(buf));
-    sprintf(buf, "err1: %s\n", strerror(status1));
-    write(1, buf, strlen(buf));
-    sprintf(buf, "err2: %s\n", strerror(status2));
-    write(1, buf, strlen(buf));
-    if (wait1 == ECHILD)
-    {
-        
-    }
-    if (WIFEXITED(status2))
-    {
-        sprintf(buf, "Exited with status %d\n", WEXITSTATUS(status2));
-        write(2, buf, strlen(buf));
-    }
-    else
-    {
-        sprintf(buf, "Qsort didn't exit: %s\n", "");
-        write(2, buf, strlen(buf));
-    }
-    if (WIFEXITED(status1)== 0)
-    {
-        sprintf(buf, "no exit %s\n", "");
-        write(1, buf, strlen(buf));
-    }
-    
+    /* Wait for child processes */
+    wait1 = wait(&status1);
+    wait2 = wait(&status2);
+
     /* Print out the sorted arrays */
     sprintf(buf, format, "sorted array by qsort:");
     printArray2(data, datai -> sk, datai -> k - 1, buf);
-    /*write(1, buf, strlen(buf));
-    for (i = datai -> sk; i < datai -> k; i++)
-        printf(" %ld ", data[i]);
-    printf("%s\n", "");*/
-/*    printArray(data, datai -> sk, datai -> k, msg, "qsort");*/
+
     sprintf(buf, format, "merged array:");
     printArray2(data, datai -> sdat, datai -> sdat + datai -> datLen - 1, buf);
-/*    write(1, buf, strlen(buf));*/
-    /*printArray(data, datai -> sdat, datai -> datLen, msg, "merge");*/
-   /* printf("%4s", "");
-    printf("val data: %ld\n", datai -> sdat);
-    printf("data[0] = %ld\n", data[0]);*/
-    /*printArray2(data, 0, datai -> totLen - 1, "abc: \n");
-    for (i = datai -> sdat; i < datai -> sdat + datai -> datLen; i++)
-            printf(" %ld ", data[i]);
-    printf("%s\n", "");*/
+
     /* Free the argument arrays */
-    if (av == 1)
-    {
-        for (i = 0; i < 5; i++)
-            free(qargs[i]);
-        for (i = 0; i < 9; i++)
-            free(margs[i]);
-    
-    sprintf(buf, "%s\n", "freeing complete");
-    write(2, buf, strlen(buf));
-    }
+    freeArgArray(qargs, 5);
+    freeArgArray(margs, 9);
+    free(datai);
+
     detachRemMem(data, shmID);
 
     return 0;
