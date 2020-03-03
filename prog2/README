@@ -1,119 +1,128 @@
-
-
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                      User ID: selarkin */
+/* DUE DATE: 03/02/2020                                                      */
+/* PROGRAM ASSIGNMENT 2                                                      */
+/* FILE NAME: README                                                         */
+/* PROGRAM PURPOSE:                                                          */
+/*    README answers the questions given in the program description          */
+/* ------------------------------------------------------------------------- */
 
 Question 1:
-The first thing I do is read in the data from the input file into three
-temporary arrays that are stored on the heap.  This allows me to find the exact
-size of each array, which then means I can create only one shared memory
+     The first thing I do is read in the data from the input file into three
+temporary arrays that are stored on the heap.  This allows me to find the
+exact size of each array, which then means I can create only one shared memory
 segment.  Then I create the shared memory segment, copy the data from the
 temporary arrays, and free the memory for the temporary arrays.  I then take
 care of some of the required printouts before creating the argument lists for
-the two child processes.  
-To create the argument lists for the two child processes, I declare a pointer to
-an array of five longs for qsort and nine longs for merge.  I then use helper
-methods to dynamically create the space for the arguments on the heap and to
-fill in the arguments with the necessary information (more details in questions
-5 and 6 below).  After that, I print out some more information, then fork the
-process for qsort and call execvp.  Then I fork the process for merge and call
-execvp.  Then my main program waits for both processes to finish before printing
-out the resulting arrays and detaching from and removing shared memory.
+the two child processes.
+     To create the argument lists for the two child processes, I declare a
+pointer to an array of five longs for qsort and nine longs for merge.  I then
+use helper methods to dynamically create the space for the arguments on the
+heap and to fill in the arguments with the necessary information (more details
+in questions 5 and 6 below).  After that, I print out some more information,
+then fork the process for qsort and call execvp.  Then I fork the process for
+merge and call execvp.  Then my main program waits for both processes to
+finish before printing out the resulting arrays and detaching from and
+removing shared memory.
+    When merge starts, it first prints out some information.  Then it reads in
+the command-line arguments and attaches to shared memory.  For convienience
+when calculating array locations, I create three extra pointers to represent
+the start of the x, y, and output arrays within the shared memory segment.
+Then, in two loops I fork processes to find the location of m elements in array
+x and n elements in array y.  To do this, I use a merge method that first
+checks the given element against the first and last elements of the other array
+as described in the program specification.  Then, if the given element is
+greater than the first element and less than the last element of the other
+array, I call a modified binary search to find its place in the new array and
+place it there. After forking the m + n child processes in the two loops, I
+call wait m + n times in another loop.  Then the program exits.
+    When qsort starts, it reads in the command-line arguments and attaches to
+shared memory, then prints out some information.  I have formatted it to
+specifically print the two lines of process number with array section and the
+elements in the array as a single write to ensure ease of reading for debugging
+and grading.  To do this special print, I loop through the section of shared
+memory twice, once to count how many spaces I need to allocate for the array
+elements, and once to concatenate strings containing the array elements onto
+the main string.  After I write the elements, I free the temporary memory used
+for their string.  Then, if the array's left element is smaller than its right
+one, I partition the array using the Lomuto algorithm.  From there, qsort
+forks and calls execvp twice with the subarrays resulting from the partition,
+first checking to see if its children have valid ranges (left <= right).
+Finally, qsort waits for its two children before detaching from memory and
+printing a message to show that it is exiting.
 
-When merge starts, it first prints out some information.  Then it reads in the
-command-line arguments and attaches to shared memory.  For convienience when
-calculating array locations, I create three extra pointers to represent the
-start of the x, y, and output arrays within the shared memory segment.  Then, in
-two loops I fork processes to find the location of m elements in array x and n
-elements in array y.  To do this, I use a merge method that first checks the
-given element against the first and last elements of the other array as
-described in the program specification.  Then, if the given element is greater
-than the first element and less than the last element of the other array, I call
-a modified binary search to find its place in the new array and place it there.
-After forking the m + n child processes in the two loops, I call wait m + n
-times in another loop.  Then the program exits.
-
-When qsort starts, it reads in the command-line arguments and attaches to shared
-memory, then prints out some information.  I have formatted it to specifically 
-print the two lines of process number with array section and the elements in 
-the array as a single write to ensure ease of reading for debugging and 
-grading.  To do this special print, I loop through the section of shared memory
-twice, once to count how many spaces I need to allocate for the array elements,
-and once to concatenate strings containing the array elements onto the main
-string.  After I write the elements, I then free the temporary memory used for
-their string.  Then, if the array's left element is smaller than its right one,
-I partition the array using the Lomuto algorithm.  From there, qsort forks and 
-calls execvp twice to create two child processes also running qsort but each
-with half their parent's array.  Finally, qsort waits for its two children
-before detaching from memory and printing a message to show that it is exiting.
-
-Question 2: 
-My program works because it follows the specifications carefully.  Specifically,
-passing information between processes works because each can attach to shared
-memory.  Because I designed my memory segment carefully, there is no chance of a
-race condition (see Questions 3 and 4), meaning each process can read and modify
-memory as needed.  
+Question 2:
+My program works because it follows the specifications carefully, performs
+error checking, and avoids race conditions. Specifically, passing information
+between processes works because each child process attaches to shared memory
+using a memory key it receives in its command-line arguments. Because I
+designed my memory segment carefully, there is no chance of a race condition
+(see Questions 3 and 4), meaning each process can read and modify memory as
+needed.  I further ensure correctness by waiting for all children to complete
+before proceeding to use the information they have modified.
 
 Question 3:
 I use one shared memory segment shared between all processes.  Before creating
 the shared memory segment, I determine its size by reading the input file into
 temporary arrays a, x, and y.  Because qsort can be done in-place, qsort only
 needs the space of array a.  Merge requires a new space of size m + n to avoid
-overwriting data.  This means the total size of the shared memory will be 
+overwriting data.  This means the total size of the shared memory will be
 k + 2(m + n).  I then create a shared memory segment of this size by calling
 ftok to get a key and then shmget to get the memory id.  After that I attach to
 the shared memory using the same memory id in all processes.  After main
 attaches to the shared memory, the values for the initial arrays are copied in
 to be ready to use.  The memory segment is then divided into the following
 sections:  a, which contains all the values of a, x, which contains all the
-values of x, y which contains all the values of y, and output, which remains all
-zeros from the initialization of the shared memory.
+values of x, y which contains all the values of y, and output, which remains
+all zeros from the initialization of the shared memory.
 
 Question 4:
 There are no potential race conditions in my program, and there are no explicit
-race conditions in the program specification.  I can guarantee there are no race
-conditions in my program because I ensure there is no concurrent modification of
-the same index in the shared memory array by two or more processes. 
-To do this, I make sure main has finished writing the initial values before it
-forks the child processes of qsort and merge.  Then, I ensure qsort will not
+race conditions in the program specification. I can guarantee there are no race
+conditions in my program because I ensure there is no concurrent modification
+of the same index in the shared memory array by two or more processes. To do
+this, I make sure main has finished writing the initial values before it
+forks the child processes qsort and merge.  Then, I ensure qsort will not
 have a race condition from the partition algorithm (which writes to indices) by
 having it complete the partition before it forks its children.  Because its
 children each stay in their own half of the array when performing their own
-partition, there is no chance of a race condition between them. 
-In merge, although each process in x reads through y (and vice versa), it does 
-not modify it but only writes to a position in the new array.  Because the
-program guarantees that the elements of x and y are distinct integers, this
-means that each element will have a unique position in the new array.  Because
-this position is unique, it can only be modified by one process and therefore no
-race condition will occur.  Finally, while main reading the array to print it
-out will not cause a race condition (because it is not modifying it), I ensure
-predictable output by having main wait for its children before printing out the
-arrays.  This is deterministic because both merge and qsort also wait for all
-their children before exiting.
+partition, there is no chance of a race condition between them although they
+run concurrently. In merge, although each process in x reads through y
+(and vice versa), it does not modify it but only writes to a position in the
+new array.  Because the program specification guarantees that the elements of x
+and y are distinct integers, this means that each element will have a unique
+position in the new array.  Because this position is unique, it can only be
+modified by one process and therefore no race condition will occur. Finally,
+while main reading the array to print it out will not cause a race condition
+(because it is not modifying it), I ensure predictable output by having main
+wait for its children before printing out the arrays.  This is deterministic
+because both merge and qsort also wait for all their children before exiting.
 
 Question 5:
 I construct the argument list for passing from main to qsort by declaring an
 array that is of type char *[n] where n is the number of arguments.  I then
 populate the array in a utility method that creates n char * variables of size
-12 bytes on the heap.  I chose 20 because the biggest long will be of size 10
-when converted to ASCII.  I then populate the variables using sprinf statements
-as follows:  the first argument is the program name, "./qsort" (because I need a
-./ to run executables in my shell).  The second argument is the leftmost index 
-in the array section, the third argument is the rightmost index of the array 
-section, the third argument is the shared memory id, the fourth argument is the
-total size of the shared memory segment in bytes, and the fifth argument is the
-null string.  I then call execvp using the arguments of array[0] (the program
-name) and array (containing all the arguments).  Later, after waiting for qsort
-to finish, I free the space containing the arguments before exiting from the
-program.
+12 bytes on the heap.  I chose 12 because the biggest long will be of size 10
+when converted to ASCII and this nicely allows two null bytes following it.
+I then populate the variables using sprinf statements as follows:  the first
+argument is the program name, "./qsort" (because I need a ./ to run executables
+in my shell).  The second argument is the leftmost index in the array section,
+the third argument is the rightmost index of the array section, the third
+argument is the shared memory id, the fourth argument is the total size of the
+shared memory segment in bytes, and the fifth argument is the null string.  I
+then call execvp using the arguments of array[0] (the program name) and array
+(containing all the arguments).  Later, after waiting for qsort to finish, I
+free the space containing the arguments before exiting from the program.
 
 Question 6:
 Similarly to my approach with qsort, I declare an array of type char *[n],
 execpt this time n is 9 arguments instead of 5.  I allocate 12 byte segments on
-the heap again, for similar reasons and use the same sprintf method to fill them
-in a utility function.  As usual, the first argument is the program name.  Then
-I pass in the starting index of array x, the size of array x, the startin index
-of array y, the size of array y, the starting index of the output array, the
-size of the output array, the shared memory id, and finally, the total size of
-the shared memory segment.  As with qsort, I call execvp with the first
+the heap again, for similar reasons and use the same sprintf method to fill
+them in a utility function.  As usual, the first argument is the program name.
+Then I pass in the starting index of array x, the size of array x, the starting
+index of array y, the size of array y, the starting index of the output array,
+the size of the output array, the shared memory id, and finally, the total size
+of the shared memory segment.  As with qsort, I call execvp with the first
 parameter being the program name, and the second being the full array of
 arguments.  Likewise, I free the memory space after waiting but before exiting
 from the program.

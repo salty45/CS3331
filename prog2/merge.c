@@ -1,35 +1,14 @@
 /* ------------------------------------------------------------------------- */
-/* ------------------------------------------------------------------------- */
 /* NAME: Sarah Larkin                                      User ID: selarkin */
-/* DUE DATE: 02/24/2020                                                      */
+/* DUE DATE: 03/02/2020                                                      */
 /* PROGRAM ASSIGNMENT 2                                                      */
-/* FILE NAME: main.c                                                         */
+/* FILE NAME: merge.c                                                        */
 /* PROGRAM PURPOSE:                                                          */
-/*    This program forks a child process that executes qsort.c to sort an    */
-/*    array using quicksort.  Concurrently, it performs a binary merge on    */
-/*    another two arrays by forking a child to execute merge.c.  The arrays  */
-/*    are transferred between processes by using shared memory.              */
+/*    This program merges two input arrays into a single sorted output array */
+/*    by forking multiple children to execute a modified binary search to    */
+/*    find each element's position in the new output array.  All three arrays*/
+/*    are accessed through attaching to a shared memory segment.             */
 /* ------------------------------------------------------------------------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,23 +19,22 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <errno.h>
-struct DataInfo
-{
-    long k;
-    long m;
-    long n;
-    long sk;
-    long sm;
-    long sn;
-    long sdat;
-    long datLen;
-    long totLen;
-};
-
 
 /* ------------------------------------------------------------------------- */
 /* FUNCTION: binSearch                                                       */
-/*    Performs a binary search to find and */
+/*    Performs a modified binary search to find and return the index of an   */
+/*    element in a new array based on its location in its current array and  */
+/*    its value relative to a comparison array.                              */
+/* PARAMETERS:                                                               */
+/*    i: the index in the current array                                      */
+/*    x: pointer to the current array                                        */
+/*    y: pointer to the comparison array                                     */
+/*   iy: length of the comparison array                                      */
+/*   sm: message to print regarding the arrays - used for formatted printing */
+/*    c: the name of the current array as a char                             */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 long binSearch(long i, long *x, long *y, long iy, char *ms, char c)
 {
     char buf[80];
@@ -67,11 +45,13 @@ long binSearch(long i, long *x, long *y, long iy, char *ms, char c)
     long j = iy - 1;
     long m = (j + k) / 2;
 
+    /* Set the characters to be printed out */
     if (c == 'x')
         other = 'y';
     else
         other = 'x';
 
+    /* perform the binary search */
     while (k <= j)
     {
         if (x[i] < y[m])
@@ -95,6 +75,24 @@ long binSearch(long i, long *x, long *y, long iy, char *ms, char c)
     return k + i;
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: merge                                                           */
+/*     Performs a merge to create a new sorted array by finding a new index  */
+/*     for element x[i] in the output array (based on its current position   */
+/*     and its value relative to the elements of a comparison array) and     */
+/*    storing it there.                                                      */
+/* PARAMETERS:                                                               */
+/*     i: the current index of the element                                   */
+/*     x: pointer to the current array                                       */
+/*    y: pointer to the comparison array                                     */
+/*    r: pointer to the new array                                            */
+/*   iy: length of the comparison array                                      */
+/*    m: message to print regarding the arrays - used for formatted printing */
+/*    c: the name of the current array as a char                             */
+/* FUNCTION CALLED:                                                          */
+/*    binSearch: perform a modified binary search to find the index in the   */
+/*    new output array                                                       */
+/* ------------------------------------------------------------------------- */
 void merge(long i, long *x, long *y, long *r, long iy, char *m, char c)
 {
     char buf[80];
@@ -116,6 +114,7 @@ void merge(long i, long *x, long *y, long *r, long iy, char *m, char c)
     sprintf(buf, "%shandling %s\n", m, curr);
     write(1, buf, strlen(buf));
 
+    /* Is x[i] within the bounds of the comparison array? */
     if (x[i] < y[0])
     {
         endElem = i;
@@ -139,21 +138,28 @@ void merge(long i, long *x, long *y, long *r, long iy, char *m, char c)
     r[endElem] = x[i];
 }
 
-
-/**
- * Merge.c gets x and y as args as well as a key to shared memory
- *
- * Communication protocol:
- * 1 - starting index of x
- * 2 - size of x
- * 3 - starting index of y
- * 4 - size of y
- * 5 - starting index of data
- * 6 - size of data
- * 7 - shared memory id
- * 8 - total size of shared memory
- */
-
+/* ------------------------------------------------------------------------- */
+/* FUNCTION main:                                                            */
+/*     Main reads in the command-line arguments and parses them according to */
+/*     the following communication protocol:                                 */
+/*         argv[1]: the starting index of array x                            */
+/*         argv[2]: the size of array x                                      */
+/*         argv[3]: the starting index of array y                            */
+/*         argv[4]: the size of array y                                      */
+/*         argv[5]: the starting index of the output array                   */
+/*         argv[6]: the size fo the output array                             */
+/*         argv[7]: the shared memory id                                     */
+/*         argv[8]: the total size in bytes of the shared memory segment     */
+/*     Main then attaches to shared memory, prints out some information, and */
+/*     forks one child per element in x and y to find its location in the    */
+/*     output array.  Main then waits for all its children, detaches from    */
+/*     shared memory, and exits.                                             */
+/* PARAMETER USAGE:                                                          */
+/*    argc: the number of command line arguments                             */
+/*    argv: array of command-line arguments                                  */
+/* FUNCTION CALLED:                                                          */
+/*    merge: each child calls merge to find its place in the new array       */
+/* ------------------------------------------------------------------------- */
 int main (int argc, char **argv)
 {
     char buf[80];
@@ -195,6 +201,7 @@ int main (int argc, char **argv)
 
     /* get and attach to shared memory with checks */
     data = (long *) shmat(shmID, NULL, 0);
+
     /* no need to error check: if I fail to attach, I can't possibly detach */
     if (data == (void *) -1)
         pid = -1;
@@ -207,7 +214,8 @@ int main (int argc, char **argv)
     sprintf(buf, "%6s$$$ M-PROC(%4d): Main merge process\n", "", getpid());
     write(1, buf, strlen(buf));
 
-    /* fork m + n kiddos to do the work */
+    /* fork m + n child processes to do the work in the next two loops*/
+    /* fork m child processes */
     for (i = 0; i < lenx; i++)
     {
         if ((pid = fork()) < 0)
@@ -223,6 +231,7 @@ int main (int argc, char **argv)
         }
     }
 
+    /* fork n child processes */
     for (i = 0; i < leny; i++)
     {
         if ((pid = fork()) < 0)
@@ -238,6 +247,7 @@ int main (int argc, char **argv)
         }
     }
 
+    /* wait for children */
     for (i = 0; i < lenx + leny; i++)
         wait(&pid);
 

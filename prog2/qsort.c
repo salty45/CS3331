@@ -40,7 +40,7 @@ void swap(long *arr, long a, long b)
 
 /* ------------------------------------------------------------------------- */
 /* FUNCTION lomuto                                                           */
-/*    Perform the lomuto partition on the given array with the given start   */
+/*    Perform the Lomuto partition on the given array with the given start   */
 /* PARAMETER USAGE:                                                          */
 /*    arr: array to partion                                                  */
 /*    l: the left most index                                                 */
@@ -124,9 +124,9 @@ long countArr(long *arr, long start, long end)
 /*    arr: pointer to the array                                              */
 /*    start: the index of the leftmost element in the array                  */
 /*    end: the index of the rightmost element in the array                   */
-/* TODO: */
+/*    msg: the message to be printed, taking four arguments %s %d %ld %ld    */
 /* FUNCTION CALLED:                                                          */
-/*    none                                                                   */
+/*    countArr: counts the number of elements in the array                   */
 /* ------------------------------------------------------------------------- */
 void printArray(long *arr, long start, long end, char * msg)
 {
@@ -152,6 +152,15 @@ void printArray(long *arr, long start, long end, char * msg)
     free(printout);
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: countArr                                                        */
+/*    Utility function frees the subarrays of the given array of size len    */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    len: the size of the array                                             */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void freeArgArray(char *arr[], int len)
 {
     int i = 0;
@@ -159,14 +168,28 @@ void freeArgArray(char *arr[], int len)
         free(arr[i]);
 }
 
-
-/*
- * Communication protocol:
- * argv[1] = left
- * argv[2] = right
- * argv[3] = memKey
- * argv[4] = size of memory in bytes
- */
+/* ------------------------------------------------------------------------- */
+/* FUNCTION main:                                                            */
+/*     Main reads in the command-line arguments and parses them according to */
+/*     the following protocol:                                               */
+/*         argv[1] = left index of the array to sort                         */
+/*         argv[2] = right index of the array to sort                        */
+/*         argv[3] = shared memory id                                        */
+/*         argv[4] = size of shared memory segment in bytes                  */
+/*     Main then attaches to shared memory prints out some messages,         */
+/*     partitions the array using the Lomuto algorithm, and forks two child  */
+/*     processes to run qsort with subsections of the input array.  After    */
+/*     After waiting for the children to complete, main prints out the sorted*/
+/*     subarray, detaches from shared memory, and exits.                     */
+/* PARAMETER USAGE:                                                          */
+/*    argc: the number of command line arguments                             */
+/*    argv: array of command-line arguments                                  */
+/* FUNCTION CALLED:                                                          */
+/*    printArray:  utility to print out an array with a message              */
+/*    lomuto: performs a Lomuto partition on an array                        */
+/*    setArgsQsort: utility creates the arguments to execute qsort           */
+/*    freeArgArray: utility function that frees the argument subarrays       */
+/* ------------------------------------------------------------------------- */
 int main(int argc, char **argv)
 {
     char buf[80];

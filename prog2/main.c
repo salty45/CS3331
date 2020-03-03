@@ -156,8 +156,9 @@ int createShm(long **data, struct dataInfo *datai)
 
     /* Attach to the shared memory */
     *data = (long *) shmat(shmID, NULL, 0);
-    errHandleShm(*data, shmID, (int) *data);
-    sprintf(buf, "%sshared memory attached and is ready to use\n", msg);
+    if (data == (void *) -1)
+        errHandleShm(*data, shmID, -1);
+    sprintf(buf, "%sshared memory attached and is ready to use\n\n", msg);
     write(1, buf, strlen(buf));
 
     return shmID;
@@ -338,7 +339,17 @@ void setArgsMsort(char *margs[10], struct dataInfo *datai, int shmID)
     margs[9] = '\0';
 }
 
-
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: countArr                                                        */
+/*    Utility function counts and returns the number of ASCII characters     */
+/*    needed to print the given segment of the given array.                  */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    start: the index of the leftmost element in the array                  */
+/*    end: the index of the rightmost element in the array                   */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 long countArr(long *arr, long start, long end)
 {
     long i = 0;
@@ -353,7 +364,18 @@ long countArr(long *arr, long start, long end)
 }
 
 /* ------------------------------------------------------------------------- */
-/* */
+/* FUNCTION: printArray2                                                     */
+/*    Utility function prints the given message with the given array segment */
+/*    as a single write statement.  The message is assumed to be of the      */
+/*    format to take arguments of %s %d %ld %ld                              */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    start: the index of the leftmost element in the array                  */
+/*    end: the index of the rightmost element in the array                   */
+/*    msg: the message to be printed, taking four arguments %s %d %ld %ld    */
+/* FUNCTION CALLED:                                                          */
+/*    countArr: counts the number of elements in the array                   */
+/* ------------------------------------------------------------------------- */
 void printArray2(long *arr, long start, long end, char *msg)
 {
     long arrLen = countArr(arr, start, end);
@@ -378,6 +400,15 @@ void printArray2(long *arr, long start, long end, char *msg)
     free(printout);
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: countArr                                                        */
+/*    Utility function frees the subarrays of the given array of size len    */
+/* PARAMETER USAGE:                                                          */
+/*    arr: pointer to the array                                              */
+/*    len: the size of the array                                             */
+/* FUNCTION CALLED:                                                          */
+/*    none                                                                   */
+/* ------------------------------------------------------------------------- */
 void freeArgArray(char *arr[], int len)
 {
     int i = 0;
@@ -395,10 +426,13 @@ void freeArgArray(char *arr[], int len)
 /*    argc: the number of command line arguments                             */
 /*    argv: array of command-line arguments                                  */
 /* FUNCTION CALLED:                                                          */
-/*    loadData: loads data into shared memory from stdin                     */
-/*    printArray: prints out the given array                                 */
+/*    loadData:     loads data into shared memory from stdin                 */
+/*    printArray:   prints out the given array                               */
 /*    setArgsQsort: utility creates the arguments to execute qsort           */
-/*    setArgsMsort: uitlity creates the arguments to execute binary merge    */
+/*    setArgsMsort: utility creates the arguments to execute binary merge    */
+/*    printArray2:  utility function that prints a message and array in a    */
+/*                  single write                                             */
+/*    freeArgArray: utility function that frees the argument subarrays       */
 /*    detachRemMem: detach from and remove shared memory                     */
 /* ------------------------------------------------------------------------- */
 int main(int argc, char **argv)
@@ -406,16 +440,13 @@ int main(int argc, char **argv)
     char buf[80];
     int shmID = 0;
     int pid1 = 0, pid2 = 0;
-    int i = 0;
-    int status = 0;
     char * format = "*** MAIN: %s\n";
     long *data = NULL;
     struct dataInfo *datai = malloc(sizeof(struct dataInfo));
     char *msg = "Quicksort and Binary Merge with Multiple Processes:";
     char *qargs[6];
-    char *margs[9];
-    int status1 = 0, status2 = 0;
-    int wait1, wait2;
+    char *margs[10];
+    int status1, status2;
 
     /* Print out some info */
     sprintf(buf, "%s\n\n", msg);
@@ -437,26 +468,29 @@ int main(int argc, char **argv)
     setArgsMsort(margs, datai, shmID);
 
 
-    /* Spawn the qsort process */
+    /* Print some info */
     sprintf(buf, format, "about to spawn the process for qsort");
     write(1, buf, strlen(buf));
 
     /* Spawn the qsort process */
     if ((pid1 = fork()) == 0)
     {
-        status1 = execvp(qargs[0], qargs);
+        execvp(qargs[0], qargs);
         sprintf(buf, "*** MAIN: qsort exec failure %s\n", strerror(errno));
         write(2, buf, strlen(buf));
         exit(1);
     }
-    if (pid1 < 0)
+    else if (pid1 < 0)
     {
         sprintf(buf, "*** MAIN: Forking error: %s\n", strerror(errno));
         write(2, buf, strlen(buf));
     }
 
+    /* Print some info */
     sprintf(buf, format, "about to spawn the process for merge");
     write(1, buf, strlen(buf));
+
+    /* Spawn the qsort process */
     if ((pid2 = fork()) == 0)
     {
         execvp(margs[0], margs);
@@ -464,15 +498,15 @@ int main(int argc, char **argv)
         write(2, buf, strlen(buf));
         exit(1);
     }
-
-    if (pid2 < 0)
+    else if (pid2 < 0)
     {
         sprintf(buf, "*** MAIN: Forking error: %s\n", strerror(errno));
         write(2, buf, strlen(buf));
     }
 
-    wait1 = wait(&status1);
-    wait2 = wait(&status2);
+    /* Wait for the children */
+    wait(&status1);
+    wait(&status2);
 
 
     /* Print out the sorted arrays */
@@ -486,6 +520,8 @@ int main(int argc, char **argv)
     freeArgArray(qargs, 5);
     freeArgArray(margs, 9);
     free(datai);
+
+    /* Detach from and remove shared memory */
     detachRemMem(data, shmID);
 
     return 0;
