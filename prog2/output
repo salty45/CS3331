@@ -1,6 +1,6 @@
 Quicksort and Binary Merge with Multiple Processes:
 
-*** MAIN: shared memory key = 1782675843
+*** MAIN: shared memory key = 1781037443
 *** MAIN: shared memory created
 *** MAIN: shared memory attached and is ready to use
 Input array for qsort has 8 elements:
@@ -15,265 +15,117 @@ Input array y[] for merge has 5 elements:
 *** MAIN: about to spawn the process for qsort
 *** MAIN: about to spawn the process for merge
 Data - O: 4
-   ### Q-PROC(160497): entering with a[0..7]
+   ### Q-PROC(16884): entering with a[0..7]
        4  7  2  9  3  5  8  6 
 
-   ### Q-PROC(160497): entering with a[0..7]
-       3  2  4  9  7  5  8  6 
+   ### Q-PROC(16884): pivot element is a[2] = 4
+      $$$ M-PROC(16885): Main merge process
+      $$$ M-PROC(16888): handling x[0] = 1
+      $$$ M-PROC(16888): x[0] = 1 is found to be smaller than y[0] = 2
+      $$$ M-PROC(16888): about to write x[0] = 1 into position 0 of the output array
+      $$$ M-PROC(16889): handling x[1] = 3
+      $$$ M-PROC(16889): x[1] = 3 is found between y[-1] = 24 and y[0] = 2
+      $$$ M-PROC(16889): about to write x[1] = 3 into position 2 of the output array
+      $$$ M-PROC(16890): handling x[2] = 7
+      $$$ M-PROC(16890): x[2] = 7 is found between y[-1] = 24 and y[0] = 2
+      $$$ M-PROC(16890): about to write x[2] = 7 into position 3 of the output array
+      $$$ M-PROC(16891): handling x[3] = 15
+      $$$ M-PROC(16891): x[3] = 15 is found between y[0] = 2 and y[1] = 8
+      $$$ M-PROC(16891): about to write x[3] = 15 into position 5 of the output array
+      $$$ M-PROC(16892): handling x[4] = 17
+      $$$ M-PROC(16893): handling x[5] = 24
+      $$$ M-PROC(16892): x[4] = 17 is found between y[1] = 8 and y[2] = 16
+      $$$ M-PROC(16892): about to write x[4] = 17 into position 7 of the output array
+      $$$ M-PROC(16893): x[5] = 24 is found to be larger than y[4] = 20
+      $$$ M-PROC(16893): about to write x[5] = 24 into position 10 of the output array
+      $$$ M-PROC(16894): handling y[0] = 2
+      $$$ M-PROC(16894): y[0] = 2 is found between x[-1] = 6 and x[0] = 1
+      $$$ M-PROC(16894): about to write y[0] = 2 into position 1 of the output array
+      $$$ M-PROC(16895): handling y[1] = 8
+      $$$ M-PROC(16895): y[1] = 8 is found between x[1] = 3 and x[2] = 7
+      $$$ M-PROC(16895): about to write y[1] = 8 into position 4 of the output array
+      $$$ M-PROC(16896): handling y[2] = 16
+      $$$ M-PROC(16896): y[2] = 16 is found between x[2] = 7 and x[3] = 15
+      $$$ M-PROC(16896): about to write y[2] = 16 into position 6 of the output array
+      $$$ M-PROC(16897): handling y[3] = 18
+      $$$ M-PROC(16897): y[3] = 18 is found between x[3] = 15 and x[4] = 17
+      $$$ M-PROC(16897): about to write y[3] = 18 into position 8 of the output array
+      $$$ M-PROC(16898): handling y[4] = 20
+      $$$ M-PROC(16898): y[4] = 20 is found between x[3] = 15 and x[4] = 17
+      $$$ M-PROC(16898): about to write y[4] = 20 into position 9 of the output array
+   ### Q-PROC(16887): entering with a[3..7]
+       9  7  5  8  6 
 
-buff x: 
-X? 1
-      $$$$ M-PROC(160498): Main merge process
-      $$$ M-PROC(160501): handling x[0] = 1
-      $$$ M-PROC(160501): x[0] = 1 is found to be smaller than y[0] = 2
-      $$$ M-PROC(160501): about to write x[0] = 1 into position 0 of the output array
-      $$$ M-PROC(160502): handling x[1] = 3
-      $$$ M-PROC(160502): x[1] = 3 is found between y[-1] = 24 and y[0] = 2
-      $$$ M-PROC(160502): about to write x[1] = 3 into position 2 of the output array
-      $$$ M-PROC(160503): handling x[2] = 7
-      $$$ M-PROC(160503): x[2] = 7 is found between y[-1] = 24 and y[0] = 2
-      $$$ M-PROC(160503): about to write x[2] = 7 into position 3 of the output array
-      $$$ M-PROC(160504): handling x[3] = 15
-      $$$ M-PROC(160504): x[3] = 15 is found between y[0] = 2 and y[1] = 8
-      $$$ M-PROC(160504): about to write x[3] = 15 into position 5 of the output array
-      $$$ M-PROC(160505): handling x[4] = 17
-      $$$ M-PROC(160505): x[4] = 17 is found between y[1] = 8 and y[2] = 16
-      $$$ M-PROC(160506): handling x[5] = 24
-      $$$ M-PROC(160505): about to write x[4] = 17 into position 7 of the output array
-      $$$ M-PROC(160507): handling y[0] = 2
-      $$$ M-PROC(160506): x[5] = 24 is found to be larger than y[4] = 20
-      $$$ M-PROC(160506): about to write x[5] = 24 into position 10 of the output array
-      $$$ M-PROC(160507): y[0] = 2 is found between x[-1] = 6 and x[0] = 1
-      $$$ M-PROC(160507): about to write y[0] = 2 into position 1 of the output array
-      $$$ M-PROC(160511): handling y[4] = 20
-      $$$ M-PROC(160511): y[4] = 20 is found between x[3] = 15 and x[4] = 17
-      $$$ M-PROC(160511): about to write y[4] = 20 into position 9 of the output array
-      $$$ M-PROC(160508): handling y[1] = 8
-      $$$ M-PROC(160508): y[1] = 8 is found between x[1] = 3 and x[2] = 7
-      $$$ M-PROC(160508): about to write y[1] = 8 into position 4 of the output array
-      $$$ M-PROC(160509): handling y[2] = 16
-      $$$ M-PROC(160509): y[2] = 16 is found between x[2] = 7 and x[3] = 15
-      $$$ M-PROC(160509): about to write y[2] = 16 into position 6 of the output array
-      $$$ M-PROC(160510): handling y[3] = 18
-      $$$ M-PROC(160510): y[3] = 18 is found between x[3] = 15 and x[4] = 17
-      $$$ M-PROC(160510): about to write y[3] = 18 into position 8 of the output array
-   ### Q-PROC(160499): entering with a[0..1]
+   ### Q-PROC(16887): pivot element is a[7] = 9
+   ### Q-PROC(16886): entering with a[0..1]
        3  2 
 
-   ### Q-PROC(160497): entering with a[3..7]
-       9  7  5  8  6 
-
-   ### Q-PROC(160499): entering with a[0..1]
-       2  3 
-
-   ### Q-PROC(160500): entering with a[3..7]
-       9  7  5  8  6 
-
-   ### Q-PROC(160497): entering with a[3..7]
-       6  7  5  8  9 
-
-   ### Q-PROC(160500): entering with a[3..7]
-       5  6  7  8  9 
-
-wait 1: 160498
-   ### Q-PROC(160500): entering with a[5..7]
-       7  8  9 
-
-   ### Q-PROC(160500): entering with a[5..7]
-       7  8  9 
-
-   ### Q-PROC(160514): entering with a[3..3]
-       5 
-
-   ### Q-PROC(160499): entering with a[2..1]
-      
-
-   ### Q-PROC(160516): entering with a[5..7]
-       7  8  9 
-
-   ### Q-PROC(160515): entering with a[2..1]
-      
-
-   ### Q-PROC(160516): entering with a[5..7]
-       7  8  9 
-
-   ### Q-PROC(160513): entering with a[3..6]
-       5  6  7  8 
-
-   ### Q-PROC(160513): entering with a[3..6]
-       5  6  7  8 
-
-   ### Q-PROC(160512): entering with a[0..0]
+   ### Q-PROC(16886): pivot element is a[1] = 3
+wait 1: 16885
+   ### Q-PROC(16900): entering with a[0..0]
        2 
 
-   ### Q-PROC(160497): entering with a[8..7]
-      
+   ### Q-PROC(16900): pivot element is a[0] = 2
+   ### Q-PROC(16900): section a[0..0] sorted
+       2 
 
-   ### Q-PROC(160517): entering with a[8..7]
-      
+   ### Q-PROC(16900): exits
+   ### Q-PROC(16899): entering with a[3..6]
+       6  7  5  8 
 
-   ### Q-PROC(160519): entering with a[6..7]
-       8  9 
+   ### Q-PROC(16899): pivot element is a[4] = 6
+   ### Q-PROC(16886): section a[0..1] sorted
+       2  3 
 
-   ### Q-PROC(160519): entering with a[6..7]
-       8  9 
+   ### Q-PROC(16886): exits
+   ### Q-PROC(16902): entering with a[5..6]
+       7  8 
 
-wait 2: 160497
+   ### Q-PROC(16902): pivot element is a[5] = 7
+   ### Q-PROC(16901): entering with a[3..3]
+       5 
+
+   ### Q-PROC(16901): pivot element is a[3] = 5
+   ### Q-PROC(16901): section a[3..3] sorted
+       5 
+
+   ### Q-PROC(16901): exits
+   ### Q-PROC(16903): entering with a[6..6]
+       8 
+
+   ### Q-PROC(16903): pivot element is a[6] = 8
+   ### Q-PROC(16903): section a[6..6] sorted
+       8 
+
+   ### Q-PROC(16903): exits
+   ### Q-PROC(16902): section a[5..6] sorted
+       7  8 
+
+   ### Q-PROC(16902): exits
+   ### Q-PROC(16899): section a[3..6] sorted
+       5  6  7  8 
+
+   ### Q-PROC(16899): exits
+   ### Q-PROC(16887): section a[3..7] sorted
+       5  6  7  8  9 
+
+   ### Q-PROC(16887): exits
+   ### Q-PROC(16884): section a[0..7] sorted
+       2  3  4  5  6  7  8  9 
+
+   ### Q-PROC(16884): exits
+wait 2: 16884
 err1: Success
 err2: Success
-   ### Q-PROC(160500): entering with a[6..7]
-       8  9 
-
 *** MAIN: sorted array by qsort:
-   ### Q-PROC(160500): entering with a[6..7]
-       8  9 
+     2 3 4 5 6 7 8 9 
 
 *** MAIN: merged array:
-   ### Q-PROC(160518): entering with a[5..4]
-      
+     1 2 3 7 8 15 16 17 18 20 24 
 
+*** MAIN: shared memory successfully detached
+*** MAIN: shared memory successfully removed
 data e: 4
 data n: 0
-Data : 140292139311104
-qargs[0] = ./qsort
-qargs[1] = 0
-qargs[2] = 7
-qargs[3] = 130187267
-qargs[4] = 30
-datum: 140292139311104
-data c: 4
-data a: 4
-data b: 0
- 2  3  4  5  6  7  8  9 
-    val data: 19
-data[0] = 2
- 1  2  3  7  8  15  16  17  18  20  24 
-   ### Q-PROC(160521): entering with a[3..2]
-      
-
-   ### Q-PROC(160522): entering with a[6..7]
-       8  9 
-
-   ### Q-PROC(160513): entering with a[4..6]
-       6  7  8 
-
-   ### Q-PROC(160522): entering with a[6..7]
-       8  9 
-
-   ### Q-PROC(160513): entering with a[4..6]
-       6  7  8 
-
-   ### Q-PROC(160520): entering with a[5..4]
-      
-
-   ### Q-PROC(160523): entering with a[4..6]
-       6  7  8 
-
-   ### Q-PROC(160516): entering with a[6..7]
-       8  9 
-
-   ### Q-PROC(160523): entering with a[4..6]
-       6  7  8 
-
-   ### Q-PROC(160524): entering with a[6..5]
-      
-
-   ### Q-PROC(160516): entering with a[6..7]
-       8  9 
-
-   ### Q-PROC(160519): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160525): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160513): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160500): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160513): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160528): entering with a[6..5]
-      
-
-   ### Q-PROC(160526): entering with a[6..5]
-      
-
-   ### Q-PROC(160529): entering with a[4..3]
-      
-
-   ### Q-PROC(160530): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160522): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160531): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160527): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160531): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160532): entering with a[4..3]
-      
-
-   ### Q-PROC(160533): entering with a[6..5]
-      
-
-   ### Q-PROC(160534): entering with a[5..4]
-      
-
-   ### Q-PROC(160523): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160513): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160523): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160516): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160537): entering with a[7..7]
-       9 
-
-   ### Q-PROC(160536): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160535): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160535): entering with a[5..6]
-       7  8 
-
-   ### Q-PROC(160539): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160531): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160538): entering with a[5..4]
-      
-
-   ### Q-PROC(160540): entering with a[5..4]
-      
-
-   ### Q-PROC(160523): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160542): entering with a[5..4]
-      
-
-   ### Q-PROC(160535): entering with a[6..6]
-       8 
-
-   ### Q-PROC(160543): entering with a[6..6]
-       8 
-
+Data : 140503312646144
+data? 4

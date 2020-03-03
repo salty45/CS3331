@@ -204,7 +204,7 @@ int main (int argc, char **argv)
     y = &data[startY];
     res = &data[startOutput];
 
-    sprintf(buf, "%6s$$$$ M-PROC(%4d): Main merge process\n", "", getpid());
+    sprintf(buf, "%6s$$$ M-PROC(%4d): Main merge process\n", "", getpid());
     write(1, buf, strlen(buf));
 
     /* fork m + n kiddos to do the work */

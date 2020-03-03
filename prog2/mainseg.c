@@ -296,17 +296,17 @@ void printArray(long *arr, long start, long len, char *msg, char *val)
 /* FUNCTION CALLED:                                                          */
 /*    none                                                                   */
 /* ------------------------------------------------------------------------- */
-void setArgsQsort(char *qargs[5], struct dataInfo *datai, int shmID)
+void setArgsQsort(char *qargs[5], long l, long r, int id, long len)
 {
     int i = 0;
     for (i = 0; i < 5; i++)
-        qargs[i] = malloc(sizeof(char) * 12);
+        qargs[i] = malloc(sizeof(char) * 80);
 
     sprintf(qargs[0], "%s", "./qsort");
-    sprintf(qargs[1], "%ld", datai -> sk);
-    sprintf(qargs[2], "%ld", datai -> k - 1);
-    sprintf(qargs[3], "%d", shmID);
-    sprintf(qargs[4], "%ld", datai -> totLen);
+    sprintf(qargs[1], "%ld", l);
+    sprintf(qargs[2], "%ld", r);
+    sprintf(qargs[3], "%d", id);
+    sprintf(qargs[4], "%ld", len);
     qargs[5] = '\0';
 }
 
@@ -324,7 +324,9 @@ void setArgsMsort(char *margs[10], struct dataInfo *datai, int shmID)
 {
     int i = 0;
     for (i = 0; i < 9; i++)
-        margs[i] = malloc(sizeof(char) * 12);
+    {
+        margs[i] = malloc(sizeof(char) * 80);
+    }
 
     sprintf(margs[0], "%s", "./merge");
     sprintf(margs[1], "%ld", datai -> sm);
@@ -406,15 +408,15 @@ int main(int argc, char **argv)
     char buf[80];
     int shmID = 0;
     int pid1 = 0, pid2 = 0;
-    int i = 0;
+
     int status = 0;
     char * format = "*** MAIN: %s\n";
     long *data = NULL;
     struct dataInfo *datai = malloc(sizeof(struct dataInfo));
     char *msg = "Quicksort and Binary Merge with Multiple Processes:";
-    char *qargs[6];
+    char *qargs[5];
     char *margs[9];
-    int status1 = 0, status2 = 0;
+    int status1, status2;
     int wait1, wait2;
 
     /* Print out some info */
@@ -423,6 +425,7 @@ int main(int argc, char **argv)
 
     /* Load the data */
     shmID = loadData(&data, datai);
+
 
     /* Print the input arrays */
     msg = "Input array for %s has %ld elements:\n";
@@ -433,19 +436,20 @@ int main(int argc, char **argv)
 
 
     /* Set up the args for qsort and merge */
-    setArgsQsort(qargs, datai, shmID);
+    setArgsQsort(qargs, 0, datai -> k - 1, shmID, datai -> totLen);
+
     setArgsMsort(margs, datai, shmID);
 
-
-    /* Spawn the qsort process */
     sprintf(buf, format, "about to spawn the process for qsort");
     write(1, buf, strlen(buf));
 
-    /* Spawn the qsort process */
+    /* Perform the forks */
     if ((pid1 = fork()) == 0)
     {
         status1 = execvp(qargs[0], qargs);
-        sprintf(buf, "*** MAIN: qsort exec failure %s\n", strerror(errno));
+        //perror(errno);
+
+        sprintf(buf, "*** MAIN: %s\n", "qsort failed to exec properly");
         write(2, buf, strlen(buf));
         exit(1);
     }
@@ -460,7 +464,8 @@ int main(int argc, char **argv)
     if ((pid2 = fork()) == 0)
     {
         execvp(margs[0], margs);
-        sprintf(buf, "*** MAIN: merge exec failure %s\n", strerror(errno));
+        sprintf(buf, "*** MAIN: %s%s\n", "merge: failed to exec properly ",
+        strerror(errno));
         write(2, buf, strlen(buf));
         exit(1);
     }
@@ -471,10 +476,14 @@ int main(int argc, char **argv)
         write(2, buf, strlen(buf));
     }
 
+    /* Wait for child processes */
+    sprintf(buf, "Done%s\n", "");
+    write(1, buf, strlen(buf));
     wait1 = wait(&status1);
     wait2 = wait(&status2);
 
-
+    sprintf(buf, "data: %d\n", data);
+    write(1, buf, strlen(buf));
     /* Print out the sorted arrays */
     sprintf(buf, format, "sorted array by qsort:");
     printArray2(data, datai -> sk, datai -> k - 1, buf);
@@ -485,7 +494,8 @@ int main(int argc, char **argv)
     /* Free the argument arrays */
     freeArgArray(qargs, 5);
     freeArgArray(margs, 9);
-    free(datai);
+    //free(datai);
+
     detachRemMem(data, shmID);
 
     return 0;
