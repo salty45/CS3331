@@ -1,0 +1,43 @@
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                      User ID: selarkin */
+/* DUE DATE: 03/18/2020                                                      */
+/* PROGRAM ASSIGNMENT 3                                                      */
+/* FILE NAME: README                                                         */
+/*    Answers questions accompanying the assignment                          */
+/* PROGRAM PURPOSE :                                                         */
+/*    A program to perform a multithreaded even-odd sort on an array.        */
+/* ------------------------------------------------------------------------- */
+
+Question 1:
+There are no race conditions in this even-odd sort as suggested.  Because the
+main program stops and waits for all n/2 threads of the even pass to complete
+before performing the odd pass, there is no possibility of concurrent
+modification of any single array element.  A concurrent update of the other
+shared variable, flag, will not result in a race condition because the outcome
+of the execution will be the same no matter what.  This happens because flag can
+only be concurrently set to true but is never concurrently set to false.
+Therefore, if two threads interleave execution setting it to true, it will be
+set to true no matter the order of execution.
+
+Question 2:
+Let us first assume that we are in iteration n + 1 and have not finished sorting
+all n numbers correctly.  In order to be in iteration n + 1, there must have 
+been at least n swaps because the algorithm requires a minimum of one swap for 
+the next iteration to start.  Similarly, there must have been at most n(n - 1) 
+swaps because there can be at most n/2 swaps for the even pass and (n/2 - 1) 
+swaps for the odd pass in each iteration.  It also means that there have been a
+total of n(n - 1) comparisons.  We can also see that each element is compared 
+with another element at least once per loop iteration (usually twice: only the 
+first and last element are compared only once).  That means that after n 
+iterations, each element has gone through at least n comparisons. For the array
+not to be sorted, there must exist an element that has not been swapped to its 
+place. This means that the given element cannot have been compared (and swapped
+if needed) with other elements more than n - 1 times, otherwise even an element
+that starts in the position farthest from its place would have been swapped
+down to its correct location.  This means that each element must have been both
+compared at least n times and also not compared more than n - 1 times.  This is
+absurd; therefore, by proof by contradiction, even-odd sort sorts the input
+correctly in no more than n iterations.
+
+Question 3:
+
