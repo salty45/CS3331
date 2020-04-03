@@ -15,7 +15,7 @@ IFLAGS   = -I/local/eit-linux/apps/ThreadMentor/include
 TMLIB    = /local/eit-linux/apps/ThreadMentor/Visual/libthreadclass.a
 TMLIB_NV    = /local/eit-linux/apps/ThreadMentor/NoVisual/libthreadclass.a
 
-OBJ_FILE = thread.o thread-main.o
+OBJ_FILE = thread.o thread-support.o thread-main.o
 EXE_FILE = prog4
 
 ${EXE_FILE}: ${OBJ_FILE}
@@ -24,6 +24,8 @@ ${EXE_FILE}: ${OBJ_FILE}
 thread.o: thread.cpp
 	${CC} ${DFLAGS} ${IFLAGS} ${CFLAGS} -c thread.cpp
 
+thread-support.o: thread-support.cpp
+	${CC} ${DFLAGS} ${IFLAGS} ${CFLAGS} -c thread-support.cpp
 thread-main.o: thread-main.cpp
 	${CC} ${DFLAGS} ${IFLAGS} ${CFLAGS} -c thread-main.cpp
 
