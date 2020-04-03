@@ -35,18 +35,18 @@ void Landlord::CheckRoom(int i)
     int j = 0;
     /* Entry protocol */
     door->Wait();
-    printf("in entry prot\n");
-    fflush(stdout);
+    //printf("in entry prot\n");
+    //fflush(stdout);
     *landlordPresent = true;
-    printf("lp\n");
-    fflush(stdout);
+    //printf("lp\n");
+    //fflush(stdout);
     egress->Wait();
-    printf("entry wait\n");
+    //printf("entry wait\n");
     entry->Wait();
-    printf("Eg wait\n");
-    fflush(stdout);
+    //printf("Eg wait\n");
+    //fflush(stdout);
     printout(p1, i + 1);
-    door->Signal();
+    //door->Signal();
 
     /* In CS */
     //printout(p1, i + 1);
@@ -54,23 +54,23 @@ void Landlord::CheckRoom(int i)
     Delay();
 
     /* Exit protocol */
-    printf("waiting door \n");
-    door->Wait();
-    printf("waiting sc\n");
+    //printf("waiting door \n");
+    //door->Wait();
+    //printf("waiting sc\n");
     studentCount->Wait();
-    printf("have sc\n");
+    //printf("have sc\n");
    
     /* Is it time to retire? */
     if (i == m - 1)
     {
         retire();
         kickStudentsOut();
-        printf("sunny beaches ... ahh!\n");
+        //printf("sunny beaches ... ahh!\n");
         entry->Signal();
         door->Signal();
         for (j = 0; j < totalStudents; j++)
         {
-            printf("land w: %d %d\n", j, totalStudents);
+         //   printf("land w: %d %d\n", j, totalStudents);
             allDone->Wait();
         }
         printout(p7, m);
@@ -94,11 +94,11 @@ void Landlord::CheckRoom(int i)
         kickStudentsOut();
         // kick 'em out
     }
-    printf("door sig\n");
-    fflush(stdout);
+    //printf("door sig\n");
+    //fflush(stdout);
     door->Signal();
-    printf("ent sig\n");
-    fflush(stdout);
+    //printf("ent sig\n");
+    //fflush(stdout);
     //for (j = 0; j < numWaiting; j++)
         entry->Signal();   
 }
@@ -214,9 +214,9 @@ void Student::printout(char *format, int n)
 
 void Student::enterRoom()
 {
-    printf("%s: waiting bah\n", msg);
+ //   printf("%s: waiting bah\n", msg);
     bahamas->Wait();
-    printf("%s: have bah\n", msg);
+   // printf("%s: have bah\n", msg);
     if (*landlordRetired)
     {
         bahamas->Signal();
@@ -226,9 +226,9 @@ void Student::enterRoom()
         allDone->Signal();
         Exit();
     }
-    printf("%s wait sc\n", msg);
+    //printf("%s wait sc\n", msg);
     studentCount->Wait();
-    printf("%s have sc\n", msg);
+    //printf("%s have sc\n", msg);
     (*numStudents)++;
    // printf("%s sns: %d\n", msg, *numStudents); 
     /* Wait on exited if I'm the first one here.  This makes it so the landlord
@@ -251,11 +251,11 @@ void Student::GoToParty()
     printout(p1); 
     studentQueue->Wait();
     door->Wait();
-    printf("%s %d\n", msg, landlordPresent);   
+ //   printf("%s %d\n", msg, landlordPresent);   
     /* Yield if the landlord was at the door first */
     if (*landlordPresent)
     {
-        printf("%s lp\n", msg);
+   //     printf("%s lp\n", msg);
         *StudentsWaiting++;// probably not needed here!
         door->Signal();// release the door for the landlord
         studentQueue->Signal();// release the queue entry for students
@@ -275,7 +275,7 @@ void Student::GoToParty()
     }
    
     /* In CS */
-
+    Delay();
     /* Exit protocol */
     printout(p3);
     egress->Wait();
