@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     t = atoi(argv[3]);
 
     NorthPole *liz = new NorthPole("Liz", e, r, t);
-    Santa *santa = new Santa(liz);
+    Santa *santa = new Santa(liz, t);
     
     elves = (Elf **) malloc(sizeof(Elf*) * e);
     reins = (Reindeer **) malloc(sizeof (Reindeer*) * r);
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
         delete(reins[i]);
     //for (i = 0; i < e; i++)
       //  delete(elves[i]);
-   delete(santa);
+    delete(santa);
     delete(liz); 
     return 0;
 }

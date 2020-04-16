@@ -22,49 +22,24 @@ class NorthPole: public Monitor
         //NorthPole(char *Name);
         void PrintMe(char *format, int numArgs, int *args);
     private:
-        void initCVs();
-        void initVars();
-        void WaitThenSignal(Condition *c);
-        void Destroy();
-        /*
         Condition *rwaitSanta;
         Condition *waitReindeer;
         Condition *harness;
-        Condition *flying;
+        Condition *fly;
         Condition *holiday;
         Condition *allOnHoliday;
         Condition *allHarnessed;
         Condition *allGathered;
         Condition *allFlying;
 
-        Condition *vacation;
-
         Condition **sled;
         Condition **air;
         Condition **sunny;
-        */
-
-        Condition *allGathered;
-        Condition *allHarnessed;
-        Condition *allFlying;
-        Condition *allOnHoliday;
-
-        Condition *gathering;
-        Condition *harness;
-        Condition *flying;
-        Condition *vacation;
-        
-        Condition *waitReindeer;
-
-        Condition *wakeSanta;
-
-        Condition *everyoneExit;
         bool done = false;
         int gathered = 0;
         int harnessed = 0;
-        int numFlying = 0;
+        int flying = 0;
         int onHoliday = 0;
-        int waitOthers = 0;
 
         int numBack;
         bool *lastBack;
@@ -74,15 +49,11 @@ class NorthPole: public Monitor
         int toysDelivered;
         void resetReinVars();
 
-        int reindeerDone;
-        int elvesDone;
-
-        bool santaSleeping;
-/*        Condition *waitSanta;
+        Condition *waitSanta;
         Condition *waitGroup;
         Condition *waitTurn;
         Condition *qed;
-        Condition *wakeSanta;*/
+        Condition *wakeSanta;
 
         int elves;
         int haveQ;
@@ -96,10 +67,9 @@ class NorthPole: public Monitor
 class Santa:public Thread
 {
     public:
-        Santa(NorthPole *np, int td);
+        Santa(NorthPole *np);
     private:
         void ThreadFunc();
-        int toyDeliveries;
         NorthPole *liz;
 };
 
