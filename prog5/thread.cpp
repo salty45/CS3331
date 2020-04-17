@@ -291,7 +291,7 @@ bool NorthPole::Group3Elves(int i)
         turn->Wait();
         printf("Elf %d released:  waiting = %d pres = %d rel = %d\n", i, 
             elvesWaiting, pres, elfs);
-        if (++elfs < 3)
+        if (++elfs < 3 && elvesWaiting < 3)
             turn->Signal();// See if this works
     }
     printf("%4sE = %d ew: %d\n", "", i, elvesWaiting);
@@ -300,7 +300,7 @@ bool NorthPole::Group3Elves(int i)
         
         if (!santaOpen)
             santaBusy->Wait();
-        
+        elfs = 0; 
         numElfGroups = 1;
         santaOpen = 0;
         printf("wake santa %d %d\n", i, elvesWaiting); 
@@ -397,7 +397,6 @@ bool NorthPole::AskQuestion(int i)
         if (++numElfGroups > 1)
             turn->Wait();
         
-            wakeSanta->Signal();
     }*/
     else
     {
@@ -671,9 +670,10 @@ void Santa::ThreadFunc()
         liz->PrintMe("blah reason: %c\n", -1 * reason, NULL);
         if (reason == 'e')
         {
-            liz->PrintMe("blah blah blah\n", 0, NULL);
+            //liz->PrintMe("blah blah blah\n", 0, NULL);
             liz->AdmitElves();
             Delay();
+            liz->PrintMe("Santa is helping elves\n", 0, NULL);
             liz->PrintMe("elves are with santa\n", 0, NULL);
             liz->ReleaseElves();
         }
