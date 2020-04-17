@@ -124,6 +124,8 @@ int pres = 0;
         int elfLeaving = 0;
         int elvesAsking = 0;
         Condition *askSanta;
+        Condition *allOut;
+        int elvesLeft = 0;
 };
 
 class Santa:public Thread
