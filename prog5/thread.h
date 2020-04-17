@@ -12,6 +12,11 @@ class NorthPole: public Monitor
         void ReleaseElves();
         int Sleep();
 
+
+    bool Reindeer();
+    bool ElfGroups();
+bool Query(int i);
+        void AdmitElves();
         bool ReindeerBack(int i);
         bool WaitOthers(int i);
         bool WaitSleigh(int i);
@@ -84,13 +89,41 @@ class NorthPole: public Monitor
         Condition *qed;
         Condition *wakeSanta;*/
 
-        int elves;
+       
+        Condition *answer;
+        Condition *answered;
+        Condition *otherElves;
+        Condition *turn;
+        Condition *admit;
+        Condition *elfGroupHere;    
+    
+        int elvesWaiting;
+        int elfGroup[3];
+        int numGroups;
+        int withSanta;
+        int numSanta;
+bool ElfExit(int i);
+int pres = 0; 
+   int elves;
         int haveQ;
         int forSanta;
         int elf[3];
         int numElfGroups;
-        bool santaBusy;
+        Condition *santaBusy;
         bool santaRetired;
+    
+        bool ElvesEnter();
+        bool Group3Elves(int i);
+        Condition *questionAnswered;
+        Condition *elfQ;
+        Condition *santaCanAnswer;
+        int santaOpen = 0;
+        int asking = 0;
+        int santaElves = 0;
+        int canElfExit = 0;
+        int elfLeaving = 0;
+        int elvesAsking = 0;
+        Condition *askSanta;
 };
 
 class Santa:public Thread

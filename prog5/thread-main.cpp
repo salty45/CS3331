@@ -20,31 +20,31 @@ int main(int argc, char **argv)
     for (i = 0; i < r; i++)
         reins[i] = new Reindeer(i + 1, liz);
 
-    //for (i = 0; i < e; i++)
-    //    elves[i] = new Elf(i + 1, liz);
+    for (i = 0; i < e; i++)
+        elves[i] = new Elf(i + 1, liz);
 
     printf("Created %s\n", "");
 
     santa->Begin();
+    //printf("Santa start\n");
+    //for (i = 0; i < r; i++)
+      //  reins[i]->Begin();
 
-    for (i = 0; i < r; i++)
-        reins[i]->Begin();
-
-    //for (i = 0; i < e; i++)
-      //  elves[i]->Begin();
-
-    for (i = 0; i < r; i++)
-        reins[i]->Join();
+    for (i = 0; i < e; i++)
+        elves[i]->Begin();
+    //printf("elfStart\n");
+    //for (i = 0; i < r; i++)
+      //  reins[i]->Join();
 
     //for (i = 0; i < e; i++)
       //  elves[i] -> Join();
 
     santa->Join();
-
-    for (i = 0; i < r; i++)
-        delete(reins[i]);
-    //for (i = 0; i < e; i++)
-      //  delete(elves[i]);
+    printf("doner\n");
+    //for (i = 0; i < r; i++)
+    //    delete(reins[i]);
+    for (i = 0; i < e; i++)
+        delete(elves[i]);
     delete(santa);
     delete(liz); 
     return 0;
