@@ -27,8 +27,8 @@ int main(int argc, char **argv)
 
     santa->Begin();
     //printf("Santa start\n");
-    //for (i = 0; i < r; i++)
-      //  reins[i]->Begin();
+    for (i = 0; i < r; i++)
+        reins[i]->Begin();
 
     for (i = 0; i < e; i++)
         elves[i]->Begin();

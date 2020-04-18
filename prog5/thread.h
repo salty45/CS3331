@@ -126,6 +126,10 @@ int pres = 0;
         Condition *askSanta;
         Condition *allOut;
         int elvesLeft = 0;
+        Condition *santaBusyr;
+        int elfP = 0;
+        int elf3 = 0;
+        Condition *elfDone;
 };
 
 class Santa:public Thread
