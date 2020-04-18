@@ -1,3 +1,12 @@
+/* ------------------------------------------------------------------------ */
+/* NAME: Sarah Larkin                                     UserID: selarkin  */
+/* DUE DATE: 04/17/2020                                                     */
+/* PROGRAM ASSIGNMENT #5                                                    */
+/* FILE NAME: thread.cpp                                                    */
+/* PROGRAM PURPOSE:                                                         */
+/*    Provides implementations of threads and monitor for simulating the    */
+/*    reindeer and elves and Santa program.                                 */ 
+/* ------------------------------------------------------------------------ */
 #include "ThreadClass.h"
 #include "thread.h"
 
@@ -81,7 +90,7 @@ void NorthPole::Destroy()
 NorthPole::NorthPole(char *Name, int e, int r, int t)
             : Monitor(Name, HOARE)
 {
-    printf("making np\n");
+//    printf("making np\n");
     int i = 0;
     char s[5];
     elves = 7;
@@ -111,7 +120,7 @@ NorthPole::NorthPole(char *Name, int e, int r, int t)
     //air = (Condition **) malloc(sizeof(Condition *) * r);
     //sunny = (Condition **) malloc(sizeof(Condition *) * r);
 
-    printf("reindeer: %d\n", r);
+ //   printf("reindeer: %d\n", r);
     reindeer = r;
 
     elves = e;
@@ -127,23 +136,10 @@ void NorthPole::DeliveriesDone()
 {
     MonitorBegin();
     done = true;
-    printf("So done with winter!\n");
-    waitReindeer->Signal();
-    gathering->Signal();
-    harness->Signal();
-    flying->Signal();
-    vacation->Signal();
-
-    int i = 0;
-    //for (i = 0; i < ew ; i++)//why the seg fault? 
-        otherElves->Signal();
-    for (i = 0; i < pres; i++)
-        turn->Signal();
-    admit->Signal();
-    answer->Signal();   
-    everyoneExit->Wait();
+    printf("After (%d) deliveries, Santa retires and is on vacation!\n", 
+        deliveries);
     MonitorEnd();
-    // signals for elves
+ 
 }
 
 bool NorthPole::ReindeerBack(int i)
@@ -153,16 +149,10 @@ bool NorthPole::ReindeerBack(int i)
     ret = done;
     if (!done) 
     {
-        /* if (!santaOpen) { 
-            printf("r: %d so: %d %d\n", i, j, santaOpen);
-            santaBusyr->Wait();
-        }
-        santaOpen = 0; 
-        printf("The last reindeer %d wakes up Santa\n", j + 1);
-        wakeSanta->Signal();*/
         if (++numBack == reindeer) {
             lastBack[i - 1] = true;
         }
+        if (!done)
             printf("%5sReindeer %d returns\n", "", i);
         
     }
@@ -177,12 +167,12 @@ bool NorthPole::ReindeerBack(int i)
 void NorthPole::PrintMe(char *format, int numArgs, int *args)
 {
     MonitorBegin();
+    if (args != NULL || !done) {
     if (numArgs < 0)
         printf(format, "", -1 * numArgs);
     else if (numArgs == 0)
         printf(format, "");
-    else 
-        printf("Elf!\n");
+    }
     MonitorEnd();
 }
 
@@ -198,35 +188,21 @@ bool NorthPole::WaitOthers(int i)
         for (j = 0; j < reindeer; j++)
             if (lastBack[j])
                 break;
-        printf("reint; %d %d %d\n", i, j, santaOpen);
-       // if (!santaOpen && santaSleep == ) { 
-         //  printf("r: %d so: %d %d\n", i, j, santaOpen);
-           //santaBusyr->Wait();
-        //}
         if (elfP)
             elfDone->Wait();
         elfP = 0;
         santaOpen = 0; 
-        printf("The last reindeer %d wakes up Santa\n", j + 1);
+        if (!done)
+            printf("The last reindeer %d wakes up Santa\n", j + 1);
         
         wakeSanta->Signal();
-//        printf("Santa's sleepy %d\n", i);
     }
     else
     {
-        //if (!done) {
-        printf("     R %d waits for others %d\n", i, waitOthers);
         waitReindeer->Wait();
-        printf("    ->R %d signals others\n", i);
         waitReindeer->Signal();
-        printf("    @r %d after sig\n", i);
-        //}
     }
     ret = done;
-    //if (ret && ++reindeerDone == reindeer)
-      //  everyoneExit->Signal();
-    //if (done)
-     //   printf("numRein: %d\n", reindeerDone);
     MonitorEnd();
     return ret;
 }
@@ -244,8 +220,6 @@ bool NorthPole::WaitSleigh(int i)
 {
     bool ret = false;
     MonitorBegin();
-    printf("%d Gathering to barn\n", i);
-    //santaOpen = 0;
     if (++gathered == reindeer) {
         santaOpen = 0;
         allGathered->Signal();
@@ -253,18 +227,14 @@ bool NorthPole::WaitSleigh(int i)
         WaitThenSignal(gathering);
 
      
-   // printf("waiting harness%d\n", i);
-    if (++harnessed == reindeer) {
+     if (++harnessed == reindeer) {
         allHarnessed->Signal();
     } else {
-     //   printf("Await\n");
-        WaitThenSignal(harness);
+         WaitThenSignal(harness);
     }
-    //printf("harnessed: %d\n", harnessed);
-    
+     
     if (harnessed == reindeer) 
-      //  printf("Gang harnessed!\n");
-
+ 
     ret = done;
     if (done && ++reindeerDone == reindeer)
         everyoneExit->Signal();
@@ -290,9 +260,6 @@ bool NorthPole::FlyOff(int i)
         allOnHoliday->Signal();
     else
         WaitThenSignal(vacation);
-    //holiday->Signal();
-    if (done && ++reindeerDone == reindeer)
-        everyoneExit->Signal();
     MonitorEnd();
     return ret;
 }
@@ -327,8 +294,10 @@ bool NorthPole::Group3Elves(int i)
         santaOpen = 0;
         elfGroup[elvesWaiting - 1] = i;
         //printf("wake santa %d %d\n", i, elvesWaiting); 
-        printf("%10sElves %d, %d, %d wake up the Santa\n", "", elfGroup[0],
+        if (!done) {
+            printf("%10sElves %d, %d, %d wake up the Santa\n", "", elfGroup[0],
             elfGroup[1], elfGroup[2]);
+        }
         elfP = true;
         wakeSanta->Signal();
     } else {
@@ -337,16 +306,6 @@ bool NorthPole::Group3Elves(int i)
         otherElves->Wait();
         otherElves->Signal();
     }
-
-    /* Create the list for the elf group */
-    /*for (j = 0; j < 3; j++)
-    {
-        if (elfGroup[j] == 0) {
-            elfGroup[j] = i;
-            break;
-        }       
-    }*/
-  
     return ret;
 }
 
@@ -370,12 +329,13 @@ bool NorthPole::ElvesEnter()
     return done;
 }
 
-bool NorthPole::Query(int i)
+bool NorthPole::AskQuestion(int i)
 {
     bool ret = false;
     int j = 0;
     MonitorBegin();
-    printf("%10sElf %d has a problem\n", "", i);
+    if (!done)
+        printf("%10sElf %d has a problem\n", "", i);
     Group3Elves(i);
 
     //printf("ask: %d %d %d\n", elfGroup[0], elfGroup[1], elfGroup[2]);
@@ -399,13 +359,14 @@ bool NorthPole::Query(int i)
         answer->Signal();
     }
     if (++elvesLeft == 3) {
+        if (!done) {
         printf("%10sElves %d, %d, %d return to work\n", "", elfGroup[0], 
             elfGroup[1], elfGroup[2]);
    //     allOut->Signal();  
-   
-            for (j = 0; j < 3; j++)
-                elfGroup[j] = 0;
-            allOut->Signal();
+        }
+        for (j = 0; j < 3; j++)
+            elfGroup[j] = 0;
+        allOut->Signal();
     }
     MonitorEnd();
     return ret;
@@ -431,8 +392,10 @@ void NorthPole::ReleaseElves()
 {
     MonitorBegin();
     //printf("about to release elves\n");
-    printf("Santa answers the question posted by elves %d, %d, %d\n",
+    if (!done) {
+        printf("Santa answers the question posted by elves %d, %d, %d\n",
         elfGroup[0], elfGroup[1], elfGroup[2]);
+    }
     canElfExit = 1;
     questionAnswered->Signal();
     //printf("all elves pres - go to shop!\n");
@@ -480,7 +443,7 @@ int NorthPole::Sleep()
         printf("Santa asleep!\n");
         wakeSanta->Wait();
     }**/
-    printf("santa is asleep!\n");
+    //printf("santa is asleep!\n");
     santaOpen = 1;
     if (numBack != reindeer)
         santaBusy->Signal();
@@ -488,7 +451,7 @@ int NorthPole::Sleep()
         santaBusyr->Signal();
     if (numElfGroups < 1 && numBack != reindeer) {
         //santaSleep = 1;
-        printf("Santa asleep1\n");
+      //  printf("Santa asleep1\n");
         wakeSanta->Wait();
         //santaSleep = 0;
     } 
@@ -496,22 +459,22 @@ int NorthPole::Sleep()
     if (numBack == reindeer && elfP == 0) {
         ret = 'r';
         //santaOpen = 1;
-        printf("reindeer woke me\n");  
+        //printf("reindeer woke me\n");  
         //santaBusyr->Signal();
     } else if (numElfGroups > 0) {
         santaOpen = 0;
         elvesWaiting = 0;
         numElfGroups = 0;
         otherElves->Signal();
-        printf("Elves woke me!\n");
+        //printf("Elves woke me!\n");
         //numElfGroups = 0; 
         ret = 'e';
     } else {
-        printf("what?!!!\n");
+        //printf("what?!!!\n");
     //    printf("Elves: %d  r: %d of %d\n", elvesWaiting, numBack, reindeer);
     }
-    printf("Santa is awake - whoever!\n");
-    printf("Elves: %d  r: %d of %d\n", elvesWaiting, numBack, reindeer);
+    //printf("Santa is awake - whoever!\n");
+    //printf("Elves: %d  r: %d of %d\n", elvesWaiting, numBack, reindeer);
 
     MonitorEnd();    
     return ret;
@@ -522,12 +485,12 @@ void NorthPole::GatherReindeer()
     int i = 0;
     MonitorBegin();
     waitReindeer->Signal();
-    printf("Santa is gathering the reindeer\n");
+//    printf("Santa is gathering the reindeer\n");
     if (gathered != reindeer)
         allGathered->Wait();
    
-     
-    printf("Santa is preparing sleighs\n");
+    if (!done) 
+        printf("Santa is preparing sleighs\n");
     gathering->Signal();
     //printf("Deer being harnessed\n");
     if (harnessed != reindeer)
@@ -542,12 +505,13 @@ void NorthPole::GatherReindeer()
     MonitorEnd();   
 }
 
-void NorthPole::ReleaseReindeer()
+void NorthPole::ReleaseReindeer(int *n)
 {
     int i = 0;
     MonitorBegin(); 
     if (onHoliday != reindeer)
         allOnHoliday->Wait();
+    *n = toysDelivered;
     resetReinVars();
     vacation->Signal();
     MonitorEnd();
@@ -566,7 +530,8 @@ void Santa::ThreadFunc()
     Thread::ThreadFunc();
     printf("buzz\n");
     liz->PrintMe("%sSanta thread starts\n", 0, NULL);
-    for (i = 0; i < toyDeliveries; i++)
+    while (i < toyDeliveries)
+    //for (i = 0; i < toyDeliveries; i++)
     {
         //Delay();
         //Delay();
@@ -575,14 +540,14 @@ void Santa::ThreadFunc()
         {
             liz->GatherReindeer();
             Delay();
-            liz->ReleaseReindeer();
+            liz->ReleaseReindeer(&i);
         }
         // TODO: does santa answer any elves waiting when he gets back before 
         // going to sleep?
         Delay();
         Delay();
         Delay();
-        printf("reason: %d %d\n", reason, 'e');
+        //printf("reason: %d %d\n", reason, 'e');
         //liz->PrintMe("blah reason: %c\n", -1 * reason, NULL);
         if (reason == 'e')
         {
@@ -597,8 +562,7 @@ void Santa::ThreadFunc()
             liz->ReleaseElves();
         }
     }
-    //liz->DeliveriesDone();
-    liz->PrintMe("I'm done...\nChristmas in the tropics\n", 0, NULL);
+    liz->DeliveriesDone();
     exit(0);
 }
 
@@ -615,7 +579,7 @@ void Elf::ThreadFunc()
     while(true)
     {
         Delay();
-        if (liz->/*AskQuestion(id)*/ Query(id))
+        if (liz->AskQuestion(id));
             Exit();
         Delay();
     }

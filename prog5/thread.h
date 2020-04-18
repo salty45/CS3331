@@ -1,3 +1,13 @@
+/* ------------------------------------------------------------------------ */
+/* NAME: Sarah Larkin                                     UserID: selarkin  */
+/* DUE DATE: 04/17/2020                                                     */
+/* PROGRAM ASSIGNMENT #5                                                    */
+/* FILE NAME: thread.h                                                      */
+/* PROGRAM PURPOSE:                                                         */
+/*    Provides class definition of threads and monitor for simulating the   */
+/*    reindeer and elves and Santa program.                                 */
+/* ------------------------------------------------------------------------ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,7 +32,7 @@ bool Query(int i);
         bool WaitSleigh(int i);
         bool FlyOff(int i);
         void GatherReindeer();
-        void ReleaseReindeer();
+        void ReleaseReindeer(int * n);
         void DeliveriesDone();
         //NorthPole(char *Name);
         void PrintMe(char *format, int numArgs, int *args);

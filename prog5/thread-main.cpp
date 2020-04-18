@@ -1,3 +1,13 @@
+/* ------------------------------------------------------------------------ */
+/* NAME: Sarah Larkin                                     UserID: selarkin  */
+/* DUE DATE: 04/17/2020                                                     */
+/* PROGRAM ASSIGNMENT #5                                                    */
+/* FILE NAME: thread-main.cpp                                               */
+/* PROGRAM PURPOSE:                                                         */
+/*    Creates threads and monitor and reads arguments for simulating the    */
+/*    reindeer and elves and Santa program.                                 */
+/* ------------------------------------------------------------------------ */
+
 #include "thread.h"
 
 int main(int argc, char **argv)
