@@ -21,7 +21,7 @@ class NorthPole: public Monitor
         void LetElvesIn();
         void ReleaseElves();
         int Sleep();
-
+        char WhoWokeMe();
 
     bool Reindeer();
     bool ElfGroups();
@@ -59,6 +59,8 @@ bool Query(int i);
         Condition **sunny;
         */
 
+        Condition *elvesHere;
+        Condition *allWaiting;
         Condition *allGathered;
         Condition *allHarnessed;
         Condition *allFlying;
@@ -82,7 +84,7 @@ bool Query(int i);
         int waitOthers = 0;
 
         enum states{SLEEP, ELVES, REIN};
-        int santaState = 0;
+        enum states santaState = SLEEP;
 
         int numBack;
         bool *lastBack;
