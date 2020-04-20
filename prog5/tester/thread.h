@@ -58,7 +58,7 @@ bool Query(int i);
         Condition **air;
         Condition **sunny;
         */
-
+        int waits = 0;
         Condition *elvesHere;
         Condition *allWaiting;
         Condition *allGathered;

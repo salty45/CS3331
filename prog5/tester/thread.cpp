@@ -320,8 +320,12 @@ bool NorthPole::FlyOff(int i)
     }
     ret = done;
  //   printf("rih: %d\n", i);
-    if (++onHoliday == reindeer)
+    if (++onHoliday == reindeer) {
         allOnHoliday->Signal();
+        if (waits != 1)
+            WaitThenSignal(vacation);    
+        waits = 0;   
+    }   
     else
         WaitThenSignal(vacation);
     MonitorEnd();
@@ -627,6 +631,7 @@ void NorthPole::ReleaseReindeer(int *n)
     *n = toysDelivered;
     resetReinVars();
     //santaOpen = 1;
+    waits = 1;
     vacation->Signal();
     santaState = SLEEP;
     santaBusy->Signal();
