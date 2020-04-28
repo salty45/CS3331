@@ -1,0 +1,257 @@
+/* ------------------------------------------------------------------------ */
+/* NAME: Sarah Larkin                                   UserID: selarkin    */
+/* DUE DATE: 04/27/2020                                                     */
+/* PROGRAM ASSIGNMENT #6                                                    */
+/* FILE NAME: README                                                        */
+/* PROGRAM PURPOSE:                                                         */
+/*      Performs a concurrent multi-threaded sieve to find all the prime    */
+/*      numbers less than or equal to a given number in the range [3, 100]. */
+/*      This file contains the answers to the accompanying questions.       */
+/* ------------------------------------------------------------------------ */
+
+Question 1:
+    My program logic depends on a hierarchical structure of threads, with each
+thread having at most one child, with a synchronous one-to-one channel 
+communicating with that child.  The main program reads in the command-line
+argument as the number to which to search for primes, declares and allocates
+space for the primes array, and creates and starts the master thread.  I
+allocate a fixed amount of space for the array, potentially wasting some of it
+rather than have the array be the precise size but have numerous reallocs which
+would be costly in terms of system resources.  To ensure the best use of space,
+I have the array be size (n/4) + 4, which is big enough for small values of n (n
+< 19) to have just enough space, but not so large that large values of n(n=97) 
+waste more than 4 indices of space.  Main then joins with the master thread and
+exits.
+    Master receives the maximum number, creates the first prime thread, and
+sends it a series of numbers.  After sending all the numbers, master then sends
+the end signal, -1 in this case, and joins on thread p2.  Finally, master 
+prints out the array of primes and exits.
+    Each prime thread starts by initializing a channel to its parent and storing
+a value to the next open index in the array (starting from 0 for thread P2) in
+the constructor.  Then, each prime thread receives a sequence of numbers from
+its parent, deciding how to respond based on whether the number is prime.  If
+the number is a multiple of the prime thread's memorized number, it is ignored.
+Otherwise, if it is a prime number, the current thread checks to see if it has a
+child.  If so, the number is simply passed along; otherwise, the child thread is
+created and memorizes the number.  Finally, if the number is the end signal, the
+thread passes the end signal to any child and joins on that child.
+
+Question 2:
+    My program works because it is based on a hierarchy of threads which do not
+compete for resources.  It ensures an orderly succession of ascending numbers
+are fed to the threads because channels are synchronous, meaning each number
+must be received by the next thread in a rendezvous before the sender can
+proceed to send the next thread.  Each thread waits for its child to end after
+sending it the end message before terminating itself.  This ensures that after
+master joins on P2, no prime threads are running and master can print out the
+array.  My program also works because it gives each prime thread a unique index
+into the array to avoid race conditions and ensure every number is saved.  More specifically, my program works because it avoids race conditions and deadlock.
+    Race conditions are avoided because the only two shared resources among all
+the threads are prime and stdout.  Prime not having a race condition is proven
+in question 4.4 below. I avoid a race condition for stdout by printing out using
+the atomic write command when there is the potential for more than one thread to
+be attempting to access stdout.
+    I avoid deadlock because I avoid circular waiting.  While thread p2 waits
+for p3 and p3 waits for pn, thread pn is never stuck waiting for a message from
+anyone other than p3, and it only receives one message from p3, so there is
+nothing to prevent it receiving another message from p3 when p3 is waiting for
+the rendezvous.
+
+Question 3:
+Variables in thread-main.cpp:
+num: this is the largest number to include in the sequence sent by master to
+the prime threads.  Initial value: the command-line argument if provided,
+otherwise 30. It is correctly used because it is passed to the constructor of
+the master thread, which is the only thread that needs access to it.
+
+primes: this is the global array of prime numbers.  It is uninitialized and is
+passed to master which then passes it to P2 which initializes the first index to
+2.  From there, each prime thread receives it as an argument to the constructor
+and initializes an index.  Finally, master prints out the contents of the array
+at the end.  It is correctly used because it is not modified by master but each
+thread only modifies one unique index.
+
+master: this is the variable name for the master thread set to an initial value
+of the new master thread. It is used correctly because main only initializes,
+calls begin, and joins on it.
+
+Variables in thread-cpp - Master:
+primes: this is the pointer to the prime number array.  It is initialized to the
+passed-in parameter of primes.  It is used correctly because master does not
+modify it but only passes it to thread P2 and accesses it to print out the
+array's contents.
+
+n: this is the largest number.  It is initialized to the value passed into the
+constructor and used in the comparison of master's loop to generate the number
+stream.  This is correct because we do need some way of knowing when enough
+numbers have been sent but do not need to use the variable for anything else.
+
+length: this is the length of the primes array, counted as the number of prime
+numbers stored in it.  It is initialized to 0 and a pointer to it is passed to
+thread P2; each prime thread then passes a pointer to it to its child so it can
+be incremented.  It is used correctly because it is incremented every time a new
+prime number is added and represents the true number of primes rather than the
+size of the allocated array.
+
+UserDefinedThreadID: this is the id of the thread used for channel
+communication.  It is defined as 1 for master, which is correct because P2
+creates a channel between 1 and 2.
+
+i - in Master::ThreadFunc:
+It is initialized to 0 as a placeholder and then to 3.  It's purpose is to serve
+as the counter for the number series and to be passed to thread P2 as the
+current number in the series. This is a correct use because we need to have a
+variable to pass the current number to P2, and the variable must start at 3
+since 2 is already memorized by P2.
+
+p2 - in Master::ThreadFunc:
+It is the pointer to the first prime thread and is correctly initialized to a
+prime thread with id of 2 and a channel from 1 to 2.  It is correctly used to
+access the channel to send and receive messages as well as to start and join on
+the thread.
+
+buf - in Master::PrintOut:
+It is the character buffer to store the message to be printed.  It is an array
+of 80 uninitialized elements and is used to store a message temporarily to be
+printed out using the system call write.  It is correctly used because it is an
+argument to sprintf to receive the message and to write to print the message.
+
+Variables in Sieve::PrintOut:
+buf: this is the character buffer to store a message to be printed.  it is
+initialized to be 80 null characters.  It is used to append a smaller array of
+spaces and words as well as to be printed out by write.  It is correctly
+initialized because it needs to be null for the string concatenation to work
+properly.
+
+space: this is an array of size 80 uninitialized characters.  It does not need
+to be initialized because sprintf will initialize it just before it is used,
+overwriting whatever its previous value was.  It is correctly set to size 80 to
+allow enough spaces for indenting across the page for large-numbered threads.
+It is used to create the whitespace indent concatenated with buf as well as to
+temporarily hold the message to be printed before it is concatenated with buf
+again.
+
+j: this is a counter initialized to zero and used to count up the number of
+tabs by which to indent output for the current thread.  It is compared to index,
+the index into primes for the current thread.  Its use is correct because it
+indents each thread by 2 * index + 1 spaces via a for-loop.
+
+Variables in Sieve::ThreadFunc:
+k: this is the current number received by the thread from its parent via the
+channel.  It is initialized to zero before entering the loop where it is
+immediately received and then echoed back to the parent.  Then it is compared to
+the end value and the memorized value as described in the assignment document's
+algorithm.  It is correctly used because it is initialized to a value other than
+the end value and is then updated at the top of each loop and then used
+following the assignment requirements.
+
+Variables in Sieve:
+primes: this is the pointer to the prime number array.  It is initialized to the
+passed-in parameter arr.  It is used correctly because it has a single index
+updated by each prime thread and is passed as a parameter to each child thread's
+constructor.
+
+length: this is the length of the primes array, counted as the number of prime
+numbers stored in it.  It is initialized to from the passed-in argument in the
+constructor and is updated by each TODO 0 and a pointer to it is passed to
+thread P2; each prime thread then passes a pointer to it to its child so it can
+be incremented.  It is used correctly because it is incremented every time a new
+prime number is added and represents the true number of primes rather than the
+size of the allocated array.
+
+UserDefinedThreadID: this is the id of the thread used for channel
+communication.  It is defined as 1 for master, which is correct because P2
+creates a channel between 1 and 2.
+
+id: this is a copy of UserDefinedThreadID and is initialized to the same value.
+It is used correctly in that it is used as a comparison and anywhere where
+UserDefinedThreadID would be needed (like printing).  It represents the value of
+the memorized number.
+
+index: this is a unique index into the primes array and is set equal to the
+parent thread's index + 1, with thread P2 having an index of 0.  It is used
+only in storing the memorized prime number into the primes array and as a
+parameter to the constructor of the child thread.  It is used correctly because
+it is never reset after initialization and is a unique index into primes.
+
+next: this is initialized to null and is used as a pointer to the child thread
+if it is present.  Next is primarily used to check for the presence of the child
+thread and to access the communication channel with the child thread.  When a
+child thread is created, next is set to point to that child.  It is used
+correctly because it is never reset to a variable other than the child and is
+used to access the communication channel with the child.
+
+in: this is initialized to the channel of communication between the parent
+thread and the current thread.  It is used to send messages from the parent to
+the child as a rendezvous.  It is used correctly because it is used only for
+message passing and is a synchronous channel.
+
+Question 4.1:
+No.  The reason we cannot use asynchronous channels is that we would no longer
+be able to guarantee the order in which numbers are received by a thread.  For
+example, because the channel is asynchronous, thread P2 might send a series of 
+numbers to P3 before P3 has a chance to receive them. A sample run is shown in 
+pseudocode below (numbers in parentheses are values received, P# is the thread 
+id):
+
+P2          |  P3           |  P7           |  P5
+receive(5)  |               |               |
+send(5)     |               |               |
+receive(6)  |               |               |
+ignore(6)   |               |               |
+receive(7)  |               |               |
+send(7)     |               |               |
+receive(8)  |               |               |
+ignore(8)   |               |               |
+            |  receive(7)   |               |
+            |  create(P7)   |               |
+            |               | primes[2] = 7 |
+            |  receive(5)   |               |
+            |  send(5)      |               |
+            |               | receive(5)    |
+            |               | create(P5)    |
+            |               |               |   primes[3] = 5
+The primes array is now out of order because of asynchronous threads, so the
+problem cannot be solved using asynchronous threads without modifying the
+algorithm.  If the algorithm were modified to permit an update to the memorized
+number, then asynchronous channels could be used.
+
+Question 4.2:
+Let us assume the last thread in the chain receives a number that is not a prime
+number and is larger than the number memorized.  This means the number must be 
+divisible by some prime number smaller than the number memorized by the last
+thread.  The numbers are coming in sequential ascending order which means that 
+if the number makes it to the last thread, then it cannot be divisible by any 
+of the prime numbers memorized by the previous threads.  That means that the
+incoming number must be both divisible and not divisible by at least one of the
+previously memorized numbers, which is absurd!  Therefore, by proof by
+contradiction, the incoming number must be a prime number.
+
+Question 4.3:
+Primes can be filled consecutively by having each thread keep track of two ids.
+The first id is the same as the UserDefinedThreadID and id a prime number.  The
+second id is a unique index into primes.  When the thread is created, it stores
+its UserDefinedThreadID into primes at its index.  When the thread creates the
+next thread, it gives it the index + 1 as the new index.  This results in the
+array being sorted in ascending order.
+
+Question 4.4:
+Building on question 4.3 above, when a thread is created, it has its own unique
+index into the array of primes and never accesses any other index of primes.
+The reason we would need a mutex to protect primes when saving a number would be
+if there was a race condition.  Let us assume there is a race condition in that
+thread P3 and thread P5 are both trying to save into the same index in the
+array. For both thread P3 and thread P5 to be saving into the same index, their
+stored indices must be the same.  But this is impossible because each thread's
+index is the value of the previous thread's index + 1.  Therefore, by proof by
+contradiction, there is no race condition and no need for a mutex.
+
+Question 5:
+To ensure the program terminates gracefully with the last three output lines
+being printed by Master, Master is the parent of thread P2.  Because each prime
+thread is the parent of the next one, each prime thread joins on its child
+before exiting, ensuring that it's child has stopped running and cannot be
+printing out.  This leave Master and P2 at the end. Master can then join on P2,
+ensuring that only Master and main are running.  By not printing anything out
+in main, we can ensure that Master prints out the last three lines and then
+exits.  Main then joins on master and exits.
