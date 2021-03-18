@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------- */
 /* NAME: Sarah Larkin                                      User ID: selarkin */
-/* DUE DATE: 03/18/2020                                                      */
+/* DUE DATE: 03/20/2020                                                      */
 /* PROGRAM ASSIGNMENT 3                                                      */
 /* FILE NAME: README                                                         */
 /*    Answers questions accompanying the assignment                          */
@@ -40,4 +40,78 @@ absurd; therefore, by proof by contradiction, even-odd sort sorts the input
 correctly in no more than n iterations.
 
 Question 3:
+    My solution is to create n/2 threads at the beginning of the main process
+and to number them using only odd numbers 1, 3, ... I would still begin threads
+at the start of each iteration and join threads at the end of each iteration.  
+I would also modify my swapping algorithm to compare and swap k and k - 1 for 
+the even pass and k and k + 1 for the odd pass, with k being equal to a and b 
+being removed from my current code.  I would then delete all the threads at the
+very end of the main process before exiting.
+    I would use a variaton on Peterson's Algorithm.  Instead of having an array
+of size two as discussed in the slides, I would use an array of size n and a
+single turn variable (initialized to 1) as shared variables between all the 
+threads.  Each thread would have two critical sections: one for the even pass, 
+and one for the odd pass.  The entry protocol for the first critical section 
+would set flag[k] to be true and set turn to be n % (k + 2).  Then it would 
+busy wait on the loop condition (flag[k-1] && turn != k).  Turn being not equal
+to k is a slight change to allow for having more than 2 threads.  The exit 
+protocol of this first loop would be setting flag[k] to false.  The second 
+critical section would protect the pair (k, k + 1) with a similar protocol, 
+except the entry condition would set flag[k + 1] to true and set turn to be 
+n % ((k + 1) + 2).  The entry condition would then busy wait on the loop
+condition (flag[k + 2] && turn != (k + 1).  Similarly, the exit protocol
+would set flag[k + 1] to false.
+    This solution is correct because it maintains mutual exclusion, progress, 
+and bounded waiting.  To see that mutual exclusion is maintained, let's assume
+that both thread 1 and thread 3 are in their corresponding critical sections (in
+this case, corresponding critical sections are "odd pass" for one thread and
+"even pass" for the other thread) to both modify the value at x[2].  For thread
+3 to enter its critical section, flag[3] must be true and either turn is 3 or
+flag[2] is false.  For thread 1 to enter its corresponding critical section,
+flag[2] must be true and either turn must be 2 or flag[3] must be false.  This
+means for both of them to be in their critical sections both flag[3] and flag[2]
+must be true, meaning the condition depends upon turn to let them into their
+critical sections with both turn = 2 and turn = 3 being true.  This is, of
+course, absurd.  Therefore, mutual exclusion has been met.
+   Progress is met because some thread will always be able to enter its critical
+section because it will be that thread's turn.  Bounded waiting is met because
+each thread gives up its interest in the exit protocol, so the thread that was
+waiting for that one's index to become available no longer has to wait to be
+specifically designated to take its turn.  Bounded waiting is also met because
+the main program still joins on each thread in main's for loop.
+    This implementation is correct because it ensures mutual exclusion from
+modifying shared array elements at the same time, thereby preventing race
+conditions.  It is also correct because the main loop joins after each
+iteration, preventing the threads from running out of sync with each other and
+having one thread perform all its comparisons before the other threads have a
+chance to perform theirs.  The final reason for correctness is that it still
+performs 2 comparisons per thread for each of n - 1 loops which ensures full
+sorting as described in the answer to Question 2 above.
 
+Question 4:
+    This solution would build on the previous one, except each thread would now
+contain a for-loop from 1 to n and the main process would simply create n/2
+threads, numbered 1, 3, 5, 7, ... Then it would begin all threads followed by
+joining on all threads and deletion of all threads but would no longer have a
+main loop to begin and joing threads once per iteration.   All the threads'
+comparisons and swaps would go within their for-loop, still protected by
+the critical sections as described in question 3 above.  However, I would add
+an additional array of size n representing how many times each thread had
+performed each odd/even comparison.  It would function much like the flag
+array, but each entry protocol would now contain a second busy waiting loop
+after the first one looping on num[k] < i (where k is the thread and i is the
+loop index) for the first critical section and num[k + 1] < i for the second
+critical section.  The exit protocol would then increment num[k] and num[k + 1]
+before updating the value of flag[k] and flag[k + 1] for critical sections one
+and two respectively.  The addition of this loop and extra array is necessary to
+ensure that each even-odd pair of passes occurs before the next one, otherwise
+there is no guarantee of a sorted array (i.e. thread n - 1 could run all its
+comparisons before the other threads ran any of theirs).  With this extra loop,
+the array will be sorted because each thread must wait for the previous one to
+finish its round of iteration j before it can start iteration j.  The threads
+will also move in a round-robin fashion because of this, reducing efficiency,
+but guaranteeing correctness.  To allow the whole algorithm to start, num[0]
+will be initialized to zero and the rest of the num array will be initialized to
+-1 before any of the threads are created.  This algorithm's correctness in fully
+sorting is that it makes n(n-1) comparisons (and their associated required
+swaps) which guarantees the array is sorted as discussed in question 2 above.

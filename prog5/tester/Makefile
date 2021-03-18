@@ -2,7 +2,7 @@
 # Name: Sarah Larkin
 # Username: selarkin
 # Program Assignment 5 
-# Due Date: 04/17/2020
+# Due Date: 04/20/2020
 # Filename: Makefile
 #     Compiles thread.h, thread.cpp, and  thread-main.cpp 
 #     into executable prog4 using relative paths

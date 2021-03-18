@@ -1,85 +1,108 @@
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                   Username: selarkin   */
+/* DUE DATE: 03 APRIL 2020                                                   */
+/* PROGRAM ASSIGNMENT 4                                                      */
+/* FILE NAME: thread-support.cpp                                             */
+/* PROGRAM PURPOSE:                                                          */
+/*    Provides synchronization with semaphores for the landlord-students     */
+/*    simulation.  Contains methods CheckRoom() and GoToParty()              */
+/*-------------------------------------------------------------------------- */
+
+
 #include "thread.h"
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: kickStudentsOut                                                 */
+/*    Utility function lets landlord signal students to leave in a cascade   */
+/*    and waits for the last one to signal that it has left.                 */
+/* PARAMETER USAGE:  NONE                                                    */
+/* FUNCTION CALLED:                                                          */
+/*    printout:  utility that locks and unlocks stdout for printing          */
+/* ------------------------------------------------------------------------- */
 void Landlord::kickStudentsOut()
 {
-    //int studentRm = numStudents;
     printout(p4, *numStudents);
-    printout(p5, 0);
-    studentCount->Signal();
+    printout(p5, -1);
+    // Begin cascading signals
+//    studentCount->Signal();
     egress->Signal();
-    exited->Wait(); 
-    printout(p6, 0);
-}
-
-void Landlord::retire()
-{
-    bahamas->Wait();
-    *landlordRetired = true;
-    bahamas->Signal();
+    studentCount->Signal();
+    // Wait for signal from last student
+    exited->Wait();
+    //exited->Signal(); 
+    printout(p6, -1);
 }
 
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: printout                                                        */
+/*    Utility to lock stdout before printing and unlock it after printing.   */
+/*    Takes a standardize message and an integer to print.                   */
+/* PARAMETER USAGE:                                                          */
+/*    format: the message to print                                           */
+/*    n: the number of students, or -1 to not print an integer               */
+/* FUNCTION CALLED: NONE                                                     */
+/* ------------------------------------------------------------------------- */
 void Landlord::printout(char *format, int n)
 {
-    char *m2;
     sout->Wait();
-    if (n <= 0)
+    if (n < 0)
         printf(format, "");
     else
         printf(format, n);
     sout->Signal();
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: CheckRoom                                                       */
+/*    Lets the landlord access the room as a critical section and determine  */
+/*    actions based on the current iteration and number of students present. */
+/* PARAMETER USAGE:                                                          */
+/*    i: the number of the current iteration                                 */
+/* FUNCTION CALLED:                                                          */
+/*    printout: utility for printing messages                                */
+/*    kickStudentsOut: landlord ejects students and waits for them to leave  */ 
+/* ------------------------------------------------------------------------- */
 void Landlord::CheckRoom(int i) 
 {
     int j = 0;
     /* Entry protocol */
     door->Wait();
-    //printf("in entry prot\n");
-    //fflush(stdout);
     *landlordPresent = true;
-    //printf("lp\n");
-    //fflush(stdout);
     egress->Wait();
-    //printf("entry wait\n");
     entry->Wait();
-    //printf("Eg wait\n");
-    //fflush(stdout);
     printout(p1, i + 1);
-    //door->Signal();
-
+    //door->Signal();//
     /* In CS */
-    //printout(p1, i + 1);
-    printout(p1, (*numStudents));
-    Delay();
+    for (j = 0; j < m * i * 50; j++)
+        Delay();
 
     /* Exit protocol */
-    //printf("waiting door \n");
-    //door->Wait();
-    //printf("waiting sc\n");
     studentCount->Wait();
-    //printf("have sc\n");
-   
+    
     /* Is it time to retire? */
     if (i == m - 1)
     {
-        retire();
+        bahamas->Wait();
+        *landlordRetired = true;
+        bahamas->Signal();
+
         kickStudentsOut();
-        //printf("sunny beaches ... ahh!\n");
         entry->Signal();
         door->Signal();
+        
+        /* Wait for all my students to terminate */
         for (j = 0; j < totalStudents; j++)
-        {
-         //   printf("land w: %d %d\n", j, totalStudents);
-            allDone->Wait();
-        }
+              allDone->Wait();
         printout(p7, m);
         Exit();
     }
     *landlordPresent = false;
+
+    /* Print out messages based on number of students present */ 
     if (*numStudents == 0)
     {
-        printout(p2, *numStudents);
+        printout(p2, -1);
         egress->Signal();
         studentCount->Signal();
     }
@@ -91,117 +114,25 @@ void Landlord::CheckRoom(int i)
     }
     else if(*numStudents > n)
     {
-        kickStudentsOut();
-        // kick 'em out
+        kickStudentsOut(); 
     }
-    //printf("door sig\n");
-    //fflush(stdout);
-    door->Signal();
-    //printf("ent sig\n");
-    //fflush(stdout);
-    //for (j = 0; j < numWaiting; j++)
+     door->Signal();
+ //   for (j = 0; j < *StudentsWaiting; j++)
         entry->Signal();   
-}
-    /* Printout message 2 */
- /*   if (*numStudents <= n)
-    {
-        printf("%d\n", *numStudents);
-        if (*numStudents == 0)
-            printout(p2, *numStudents);
-        else
-            printout(p3, *numStudents);
-
-        if (i < m - 1)
-            egress->Signal();
-    }
-    else if (*numStudents > n) 
-    {
-        printout(p4, *numStudents);
-        kickStudentsOut();
-    }  */        
-
-    /* Time to retire to a warm climate! */
-/*    if (i == m - 1)
-    {
-        if (*numStudents > 0)
-            kickStudentsOut();
-        else
-            studentCount->Signal();// for completeness of freeing sems
-        retire();// retire 1st so any entering student gets an eviction
-        printf("retirement party!\n");
-        entry->Signal();// notice and doesn't come in
-        for (int i = 0; i < totalStudents; i++)
-            allDone->Wait();// wait for all student threads to terminate
-        printout(p7, m);// then print out final message
-        Exit();
-    }*/
-   /* *landlordPresent = false;
-    studentCount->Signal();
-    printf("yield sc\n");
-    //*landlordPresent = false;
-    printf("lp: %d\n", *landlordPresent);
-    entry->Signal();*/
-   // door->Signal();   
-
-
-/*void Landlord::CheckRoom()
-{
-     Entry Protocol 
-    LandlordNext->Wait();
-    landlordPresent = true;
-    LandLordNext->Signal();
-    DoorLock->Wait();
-    Enter->Wait();
-    Exit->Wait();
-    DoorLock->Signal();
-
-    
-    Delay();    
-
-     Exit Protocol 
-    wait(studentCount);
-    if (i == m - 1)
-    {
-        tellStudentsToLeave();
-    }
-    else if (numStudents > n)
-    {
-        tellStudentsToLeave();
-    } 
-    else
-    {
-        Exit->Signal();
-    }
-
-    landLordPresent = false;
-    
-  let waiting students know they can enter 
-    for (j = 0; j < waitingEntry; j++)
-        Entry->Signal();
-
-    
+   // *StudentsWaiting = 0;
+    //door->Signal();
 }
 
-Student::GoToParty()
-{
-    DoorLock->Wait();
-    VarMutex->Wait();
-    if (landLordPresent)
-    {
-        waitingEntry++;
-        VarMutex->Signal();
-        DoorLock->Signal();
-        Entry->Wait();
-    }
-            
-
-
-
-    }
-
-}*/
-
-
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: printout                                                        */
+/*    Utility to lock stdout before printing and unlock it after printing.   */
+/*    Takes a standardize message and an integer to print.                   */
+/* PARAMETER USAGE:                                                          */
+/*    format: the message to print                                           */
+/*    n: the number of students, or -1 to not print an integer               */
+/* FUNCTION CALLED: NONE                                                     */
+/* ------------------------------------------------------------------------- */
+  
 void Student::printout(char *format, int n)
 {
     sout->Wait();
@@ -212,11 +143,10 @@ void Student::printout(char *format, int n)
     sout->Signal();
 }
 
+/* -------------------------------------------------------------------------- */
 void Student::enterRoom()
 {
- //   printf("%s: waiting bah\n", msg);
     bahamas->Wait();
-   // printf("%s: have bah\n", msg);
     if (*landlordRetired)
     {
         bahamas->Signal();
@@ -226,37 +156,35 @@ void Student::enterRoom()
         allDone->Signal();
         Exit();
     }
-    //printf("%s wait sc\n", msg);
     studentCount->Wait();
-    //printf("%s have sc\n", msg);
     (*numStudents)++;
-   // printf("%s sns: %d\n", msg, *numStudents); 
     /* Wait on exited if I'm the first one here.  This makes it so the landlord
      * can tell when the last one has left. */
     if (*numStudents == 1)
     {
-    //    printf("%s before exited\n", msg);
         exited->Wait();
-      //  printf("%s past exited\n", msg);
     }
     printout(p2, *numStudents);
     studentCount->Signal();
-   // door->Signal();
     bahamas->Signal();
     
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: GoToParty                                                       */
+/*    Students access the room as a critical section to party in             */
+/* PARAMETER USAGE: NONE                                                     */
+/* ------------------------------------------------------------------------- */ 
 void Student::GoToParty()
 {
     printout(p1); 
     studentQueue->Wait();
     door->Wait();
- //   printf("%s %d\n", msg, landlordPresent);   
+    
     /* Yield if the landlord was at the door first */
     if (*landlordPresent)
     {
-   //     printf("%s lp\n", msg);
-        *StudentsWaiting++;// probably not needed here!
+        //*StudentsWaiting++;
         door->Signal();// release the door for the landlord
         studentQueue->Signal();// release the queue entry for students
         entry->Wait();// wait for the landlord to leave
@@ -265,7 +193,6 @@ void Student::GoToParty()
         
         enterRoom();
         door->Signal();
-        //entry->Signal();
     }
     else
     {
@@ -275,7 +202,9 @@ void Student::GoToParty()
     }
    
     /* In CS */
-    Delay();
+    
+    for (int i = 0; i < id * 500; i++)
+        Delay();
     /* Exit protocol */
     printout(p3);
     egress->Wait();

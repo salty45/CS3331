@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------- */
 /* NAME: Sarah Larkin                                      User ID: selarkin */
-/* DUE DATE: 03/18/2020                                                      */
+/* DUE DATE: 03/20/2020                                                      */
 /* PROGRAM ASSIGNMENT 3                                                      */
 /* FILE NAME: thread.h                                                       */
 /*            Head file for class EOSortThread definition                    */

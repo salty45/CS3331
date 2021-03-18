@@ -1,0 +1,103 @@
+/* ------------------------------------------------------------------------ */
+/* NAME: Sarah Larkin                                     UserID: selarkin  */
+/* DUE DATE: 04/20/2020                                                     */
+/* PROGRAM ASSIGNMENT #5                                                    */
+/* FILE NAME: README                                                        */
+/* PROGRAM PURPOSE:                                                         */
+/*    Answers questions regarding the program implementation                */
+/* ------------------------------------------------------------------------ */
+
+Note: I do not specifically restate in each explanation that a monitor
+guarantees mutual exclusion, but my discussion of variables being restricted
+to a single value assumes the mutual exclusion is provided.
+
+Question 1:
+I guarantee that only three elves ask questions by having two counters, one
+for the number of elves with problems and one for the elves
+who are currently forming a group.  These counters are then associated with
+condition variables that require the elves to wait.  Specifically, if there
+are more than three elves who have problems, the remaining elves must wait 
+on a condition variable turn.  A second if-statement after the first forms
+the group and wakes Santa up.  To ensure that no more elves with problems
+will but in, the variable counting the total number of elves with problems
+includes those in asking the question and is decremented by three upon their
+return.
+
+Question 2:
+No elf can leave before the question is answered.  Let us assume the first 
+or second elves have left before the question was answered.  This would mean
+they must have received a signal to answer.  This, however, is absurd:  
+the only two possible sources of the signal would be from the last elf exiting
+the previous time or Santa.  The last elf to signal answer does so before any
+elves can enter, so it cannot be the source.  Neither can Santa be the source
+because Santa waits for the third elf to let him know the question has been 
+answered before he signals answer. Therefore, the first two elves to try to
+leave are blocked from doing so until the question is answered.
+Let us assume the third elf leaves before the question is answered.  That 
+means that canElfExit must be true or questionAnswered must have been
+signaled.  However questionAnswered cannot have been signaled before Santa 
+answers the question and elfCanExit is set to false until the question is 
+answered.  This is absurd: elfCanExit cannot be both true and false, and 
+Santa cannot both signal and not signal a variable.  Therefore, the third elf
+cannot leave early.  
+
+Question 3:
+Let us assume other elves can cut in with questions while a group of three
+is waiting for an answer.  This means that pres must have a value less than
+three for the elves to be able to proceed past the entry point or that turn
+must have been signaled.  But this is impossible: turn is only signaled by 
+an entering elf if the number of elves is less than three (and the last elf
+to enter could not signal it once it has already entered) or by Santa after
+a group has returned to work, and pres has a value of at least 4 - the three
+elves asking the question plus the one trying to cut in.  Therefore, by 
+reductio ad absurdum, no other elves can cut in with questions while a group
+is already in with Santa.
+
+Question 4:
+Elves cannot ask questions of Santa while he is sleeping because he waits on
+a condition variable which pauses him until he is signaled by either elves
+or reindeer.  Because the wait keeps him from performing any tasks, he cannot
+possibly be answering questions while he is on the waiting bench.  To keep 
+the elves from bargeing past and ignoring Santa's sleepy state, the first and
+second elves to join the group must wait for Santa to initiate a cascading
+signal before they can proceed with their questions.  The third elf similarly
+must wait for Santa to indicate that he is awake and ready for questions
+before passing the next barrier of asking questions.
+
+Question 5:
+Let us assume Santa is awakened by a reindeer other than the last back from
+vacation.  This would require that a the number of reindeer returned be fewer
+than the total number of reindeer.  But this is impossible because only when
+the reindeer equals the total number of reindeer can a reindeer signal Santa
+to wake him up.  Santa also cannot help but go to sleep unless all reindeer
+are back or elves are bugging him with questions.  Therefore, by proof by
+contradiction, only the last reindeer can wake Santa.
+
+Question 6:
+I ensure that Santa always handles the reindeer first by placing them in
+the first if-statement when Santa is figureing out who woke him up. Because
+the value from this if-statement is returned, it determines for Santa whether
+he should help elves or reindeer.
+
+Question 7:
+Let us assume the reindeer can sneak away for vacation.  This means that the
+reindeer would have to receive a signal to holiday.  This, however, is not
+possible.  Santa is the only one who can send the signal, and he cannot send
+it unless all 9 reindeer are present and have first signalled him that they
+are flying.  The reindeer cannot signal that they are flying until they have
+received a signal from Santa for takeoff.  This takeoff signal is not sent by
+Santa until he receives a signal that all 9 reindeer are present and harnessed.
+This signal, in turn depends on a signal from Santa that depends on a signal
+that all 9 reindeer are waiting to be harnessed.  Therefore, once they gather
+to be harnessed, none of the reindeer can sneak away.
+
+Question 8:
+Let us assume that elves can ask questions while Santa is taking care of the
+reindeer.  This would mean that santaOpen would have to be set to 1.
+Otherwise, the elves would be blocked by having to wait for the third member
+of their group to be let into the room.  However, this is impossible because
+the reindeer set santaOpen to 0 when they start gathering for Santa to 
+harness them to the sleigh.  Only Santa can set santaOpen again, and he only
+does that upon return from the toy delivery.  Therefore, by proof by 
+contradiction, no elves can ask questions while Santa is attaching the sleigh
+and delviering toys.

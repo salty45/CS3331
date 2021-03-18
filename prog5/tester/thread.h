@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------ */
 /* NAME: Sarah Larkin                                     UserID: selarkin  */
-/* DUE DATE: 04/17/2020                                                     */
+/* DUE DATE: 04/20/2020                                                     */
 /* PROGRAM ASSIGNMENT #5                                                    */
 /* FILE NAME: thread.h                                                      */
 /* PROGRAM PURPOSE:                                                         */
@@ -17,48 +17,32 @@ class NorthPole: public Monitor
 {
     public:
         NorthPole(char *Name, int e, int r, int t);
-        bool AskQuestion(int i);
+        void AskQuestion(int i);
         void LetElvesIn();
         void ReleaseElves();
         int Sleep();
         char WhoWokeMe();
 
-    bool Reindeer();
-    bool ElfGroups();
-bool Query(int i);
+       
+        bool ElfGroups();
         void AdmitElves();
-        bool ReindeerBack(int i);
-        bool WaitOthers(int i);
-        bool WaitSleigh(int i);
-        bool FlyOff(int i);
+        void ReindeerBack(int i);
+        void WaitOthers(int i);
+        void WaitSleigh(int i);
+        void FlyOff(int i);
         void GatherReindeer();
         void ReleaseReindeer(int * n);
         void DeliveriesDone();
-        //NorthPole(char *Name);
-        void PrintMe(char *format, int numArgs, int *args);
+        void PrintMe(char *format, int numArgs);
     private:
         void initCVs();
         void initVars();
         void WaitThenSignal(Condition *c);
-        void Destroy();
-        /*
-        Condition *rwaitSanta;
-        Condition *waitReindeer;
-        Condition *harness;
-        Condition *flying;
-        Condition *holiday;
-        Condition *allOnHoliday;
-        Condition *allHarnessed;
-        Condition *allGathered;
-        Condition *allFlying;
+        void resetReinVars();
+        void ElvesEnter();
+        void Group3Elves(int i);
+        void ElvesExit();      
 
-        Condition *vacation;
-
-        Condition **sled;
-        Condition **air;
-        Condition **sunny;
-        */
-        int waits = 0;
         Condition *elvesHere;
         Condition *allWaiting;
         Condition *allGathered;
@@ -72,10 +56,21 @@ bool Query(int i);
         Condition *vacation;
         
         Condition *waitReindeer;
-
         Condition *wakeSanta;
+        Condition *answer;
+        Condition *answered;
+        Condition *otherElves;
+        Condition *turn;
+        Condition *santaBusy;
+        Condition *questionAnswered;
+        Condition *elfQ;
+        Condition *santaCanAnswer;
+        Condition *askSanta;
+        Condition *allOut;
+        Condition *santaBusyr;
 
-        Condition *everyoneExit;
+        int waits = 0;// Make reindeer wait for santa
+
         bool done = false;
         int gathered = 0;
         int harnessed = 0;
@@ -87,64 +82,25 @@ bool Query(int i);
         enum states santaState = SLEEP;
 
         int numBack;
-        bool *lastBack;
+        bool *lastBack;// Track which reindeer was the last one back
         int reindeer;
-        int elfs;
+        int elfs; //elves admitted by signalling turn
         int deliveries;
         int toysDelivered;
-        void resetReinVars();
 
-        int reindeerDone;
-        int elvesDone;
-
-        bool santaSleeping;
-/*        Condition *waitSanta;
-        Condition *waitGroup;
-        Condition *waitTurn;
-        Condition *qed;
-        Condition *wakeSanta;*/
-
-       
-        Condition *answer;
-        Condition *answered;
-        Condition *otherElves;
-        Condition *turn;
-        Condition *admit;
-        Condition *elfGroupHere;    
-    
+   
         int elvesWaiting;
         int elfGroup[3];
         int numGroups;
         int withSanta;
         int numSanta;
-bool ElfExit(int i);
-int pres = 0; 
-   int elves;
-        int haveQ;
-        int forSanta;
-        int elf[3];
+        int pres = 0; // number of elves present (including talking to Santa)
+        int elves; // total number of elves
         int numElfGroups;
-        Condition *santaBusy;
-        bool santaRetired;
     
-        bool ElvesEnter();
-        bool Group3Elves(int i);
-        Condition *questionAnswered;
-        Condition *elfQ;
-        Condition *santaCanAnswer;
-        int santaOpen = 0;
         int asking = 0;
-        int santaElves = 0;
-        int canElfExit = 0;
-        int elfLeaving = 0;
-        int elvesAsking = 0;
-        Condition *askSanta;
-        Condition *allOut;
+        int canElfExit = 0; // are elves allowed to leave?
         int elvesLeft = 0;
-        Condition *santaBusyr;
-        int elfP = 0;
-        int elf3 = 0;
-        Condition *elfDone;
 };
 
 class Santa:public Thread

@@ -1,13 +1,24 @@
+/* ------------------------------------------------------------------------- */
+/* NAME: Sarah Larkin                                   Username: selarkin   */
+/* DUE DATE: 03 APRIL 2020                                                   */
+/* PROGRAM ASSIGNMENT 4                                                      */
+/* FILE NAME: thread.cpp                                                     */
+/* PROGRAM PURPOSE:                                                          */
+/*    Initializes classes for the landlord-students  simulation.             */
+/*-------------------------------------------------------------------------- */
+
 #include "thread.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-/*Student::Student(Semaphore *sem) {
-    s = sem;
-}*/
-/*Student::Student(Semaphore *sq, Semaphore *d, Semaphore *e, Semaphore *sc,
-                Semaphore *eg, Semaphore *ex, Semaphore *b, Semaphore *sy,
-                bool *lr, bool *lp, int *ns, int sid, Room *r)*/
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: Student                                                         */
+/*    Constructor for the student class                                      */
+/* PARAMETER USAGE:                                                          */
+/*    sid:  the student's id number                                          */
+/*    r: room containing the synchronization information                     */
+/* FUNCTION CALLED: NONE                                                     */
+/* ------------------------------------------------------------------------- */
 Student::Student(int sid, Room *r)
 {
     studentQueue = r->studentQueue;
@@ -23,25 +34,23 @@ Student::Student(int sid, Room *r)
     allDone = r->allDone;
     sout = r->sout;
     StudentsWaiting = &r->studentsWaiting;
-/*tudentQueue = sq;
-    door = d;
-    entry = e;
-    studentCount = sc;
-    egress = eg;
-    exited = ex;
-    bahamas = b;
-    landlordRetired = lr;
-    landlordPresent = lp;
-    numStudents = ns;
-
-    sout = sy;   */
     sprintf(msg, smsg, "", sid);
     id = sid; 
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: ThreadFunc                                                      */
+/*     Starts the student thread running                                     */
+/* PARAMETER USAGE:  NONE                                                    */
+/* FUNCTION CALLED:                                                          */
+/*      printout: utility prints messages with a lock on stdout              */
+/*      GoToParty:  student parties in a critical section room               */
+/* ------------------------------------------------------------------------- */
 void Student::ThreadFunc() {
     Thread::ThreadFunc();
     printout(p0);
+    
+    /* This student sure parties a lot! */
     while (1)
     {
         Delay();
@@ -50,9 +59,16 @@ void Student::ThreadFunc() {
     }
 }
 
-/*Landlord::Landlord(Semaphore *sq, Semaphore *d, Semaphore *e, Semaphore *sc,
-                Semaphore *eg, Semaphore *ex, Semaphore *b,
-                bool *lr, bool *lp, int *ns, int m, int n, Room *r)*/
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: Landlord                                                        */
+/*    Constructor for the landlord class                                     */
+/* PARAMETER USAGE:                                                          */
+/*    m: the number of times to check the room before retirement             */
+/*    n: the room capacity for safe parties                                  */
+/*    k: the number of students living in the appartment                     */
+/*    r: room containing the synchronization information                     */
+/* FUNCTION CALLED: NONE                                                     */
+/* ------------------------------------------------------------------------- */
 Landlord::Landlord(int m, int n, int k, Room *r)
 {
     studentQueue = r->studentQueue;
@@ -71,27 +87,40 @@ Landlord::Landlord(int m, int n, int k, Room *r)
     this->n = n;
     StudentsWaiting = &r->studentsWaiting;
     totalStudents = k;
-    printf("t->m %d m: %d t->n %d n: %d\n", this->m, m, this->n, n);
-    printf("ns: %d\n", *numStudents);
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: ThreadFunc                                                      */
+/*     Starts the landlord thread running                                    */
+/* PARAMETER USAGE:  NONE                                                    */
+/* FUNCTION CALLED:                                                          */
+/*      printout: utility prints messages with a lock on stdout              */
+/*      CheckRoom:  landlord checks room for too many students and throws    */
+/*                  them out if there are too many                           */
+/* ------------------------------------------------------------------------- */
 void Landlord::ThreadFunc()
 {
     Thread::ThreadFunc();
-    printf("hello there!\n");
-    fflush(stdout);
     int i = 0;
-    printout(p0, -1);   
-    printf("Whoo!\n");
-    fflush(stdout);
+    printout(p0, -1);  
+
+    /* Landlord checks the room m times before retiring */
     for (i = 0; i < m; i++)
     {
         Delay();
+        //for (int j = 0; j < 10; j++)
+          //  Delay();
         CheckRoom(i);
         Delay();
     }   
 }
 
+/* ------------------------------------------------------------------------- */
+/* FUNCTION: Room                                                            */
+/*    Constructor for the room class creates all the synchronization         */
+/* PARAMETER USAGE: NONE                                                     */
+/* FUNCTION CALLED: NONE                                                     */
+/* ------------------------------------------------------------------------- */
 Room::Room()
 {
     studentQueue = new Semaphore("sq", 1);
@@ -107,23 +136,6 @@ Room::Room()
     landlordPresent = false;
     numStudents = 0;
     studentsWaiting = 0; 
-    /*studentQueue = sq;
-    door = d;
-    entry = e;
-    studentCount = sc;
-    egress = eg;
-    exited = ex;
-    bahamas = b;
-    allDone = ad;
-    sout = s;
-
-    landlordRetired = lr;
-    landlordPresent = lp;
-    numStudents = ns;
-    printf("rns: %d\n", *numStudents);
-    (*landlordRetired) = false;
-    (*landlordPresent) = false;
-    (*numStudents) = 0;
- */   
+  
 }
 

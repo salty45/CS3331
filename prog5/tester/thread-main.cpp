@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------ */
 /* NAME: Sarah Larkin                                     UserID: selarkin  */
-/* DUE DATE: 04/17/2020                                                     */
+/* DUE DATE: 04/20/2020                                                     */
 /* PROGRAM ASSIGNMENT #5                                                    */
 /* FILE NAME: thread-main.cpp                                               */
 /* PROGRAM PURPOSE:                                                         */
@@ -9,7 +9,19 @@
 /* ------------------------------------------------------------------------ */
 
 #include "thread.h"
-
+/* ------------------------------------------------------------------------ */
+/* FUNCTION: main                                                           */
+/*    Main starts the program up by creating and starting the threads and   */
+/*      reading the command-line arguments                                  */
+/* PARAMETER USAGE:                                                         */
+/*    argc: the number of command-line arguments                            */
+/*    argv: command-line argument array                                     */
+/* FUNCTION CALLED:                                                         */
+/*    Reindeer: reindeer constructor                                        */
+/*    Elf: elf constructor                                                  */
+/*    NorthPole: monitor constructor                                        */
+/*    Santa: Santa constructor                                              */
+/* ------------------------------------------------------------------------ */
 int main(int argc, char **argv)
 {
     int e, r, t;
@@ -17,6 +29,7 @@ int main(int argc, char **argv)
     Elf **elves;
     Reindeer **reins;
 
+    // Read in and reset command-line arguments if they are 0
     e = atoi(argv[1]);
     r = atoi(argv[2]);
     t = atoi(argv[3]);
@@ -28,6 +41,7 @@ int main(int argc, char **argv)
     if (t == 0)
         t = 5;
 
+    // Create Santa, elves, reindeer, and monitor
     NorthPole *liz = new NorthPole("Liz", e, r, t);
     Santa *santa = new Santa(liz, t);
     
@@ -40,26 +54,17 @@ int main(int argc, char **argv)
     for (i = 0; i < e; i++)
         elves[i] = new Elf(i + 1, liz);
 
-//    printf("Created %s\n", "");
-
+    // Start the threads
     santa->Begin();
-    //printf("Santa start\n");
     for (i = 0; i < r; i++)
         reins[i]->Begin();
 
     for (i = 0; i < e; i++)
         elves[i]->Begin();
-    //printf("elfStart\n");
-    //for (i = 0; i < r; i++)
-      //  reins[i]->Join();
 
-    //for (i = 0; i < e; i++)
-      //  elves[i] -> Join();
-
+    // Anything after this isn't really necessary since Santa ends the program
     santa->Join();
-    printf("doner\n");
-    //for (i = 0; i < r; i++)
-    //    delete(reins[i]);
+
     for (i = 0; i < e; i++)
         delete(elves[i]);
     delete(santa);
